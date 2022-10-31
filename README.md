@@ -28,3 +28,12 @@ Install requirements
 ## Running
 
 `python3 game.py`
+
+
+# TODO
+
+- [ ] Interactive features such as play, stop, next controlls
+- [ ] Patterns to select and start with
+- [ ] Adjustable frame rate
+- [ ] Adjustable cell dimensions
+- [ ] Adjustable screen size
