@@ -1,0 +1,11 @@
+{
+    "screen": {
+        "width": 1200,
+        "height": 800
+    },
+    "cell": {
+        "width": 10,
+        "height": 10
+    },
+    "fps": 30
+}
