@@ -8,11 +8,11 @@ Python implementation of Conway's Game of Life
 
 ## Setup
 
-##### Method 1 (recommended)
+#### Method 1 (recommended)
 
 `make venv`
 
-##### Method 2
+#### Method 2
 Create a virtual environment
 
 `python3 -m venv venv`
