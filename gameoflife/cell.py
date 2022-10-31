@@ -41,3 +41,33 @@ class Cell:
 
     def setNextState(self, state:CellState) -> None:
         self.nextState = state
+
+
+def cellAliveNeighborCount(x, y, columns, rows, cells):
+        alive = 0
+        # Left
+        if x > 0 and cells[y][x-1].getState() == CellState.ALIVE:
+            alive += 1
+        # Right
+        if x < (columns - 1) and cells[y][x+1].getState() == CellState.ALIVE:
+            alive += 1
+        # Top
+        if y > 0 and cells[y-1][x].getState() == CellState.ALIVE:
+            alive += 1
+        # Bottom
+        if y < (rows - 1) and cells[y+1][x].getState() == CellState.ALIVE:
+            alive += 1
+        # Top left
+        if x > 0 and y > 0 and cells[y-1][x-1].getState() == CellState.ALIVE:
+            alive += 1
+        # Top right
+        if x < (columns - 1) and y > 0 and cells[y-1][x+1].getState() == CellState.ALIVE:
+            alive += 1
+        # Bottom left
+        if x > 0 and y < (rows - 1) and cells[y+1][x-1].getState() == CellState.ALIVE:
+            alive += 1
+        # Bottom right
+        if x < (columns - 1) and y < (rows - 1) and cells[y+1][x+1].getState() == CellState.ALIVE:
+            alive += 1
+
+        return alive

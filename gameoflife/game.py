@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import KEYDOWN, K_ESCAPE, MOUSEBUTTONUP, K_g
 from gameoflife.config import Config
 from gameoflife.grid import Grid
-from gameoflife.cell import Cell, CellState
+from gameoflife.cell import *
 
 
 class Game:
@@ -57,39 +57,10 @@ class Game:
             self.clock.tick(self.cfg.get('fps', default=60))
         pygame.quit()
 
-    def getAliveCellNeighbors(self, x, y):
-        aliveNeighbors = 0
-        # Left
-        if x > 0 and self.cells[y][x-1].getState() == CellState.ALIVE:
-            aliveNeighbors += 1
-        # Right
-        if x < (self.cols - 1) and self.cells[y][x+1].getState() == CellState.ALIVE:
-            aliveNeighbors += 1
-        # Top
-        if y > 0 and self.cells[y-1][x].getState() == CellState.ALIVE:
-            aliveNeighbors += 1
-        # Bottom
-        if y < (self.rows - 1) and self.cells[y+1][x].getState() == CellState.ALIVE:
-            aliveNeighbors += 1
-        # Top left
-        if x > 0 and y > 0 and self.cells[y-1][x-1].getState() == CellState.ALIVE:
-            aliveNeighbors += 1
-        # Top right
-        if x < (self.cols - 1) and y > 0 and self.cells[y-1][x+1].getState() == CellState.ALIVE:
-            aliveNeighbors += 1
-        # Bottom left
-        if x > 0 and y < (self.rows - 1) and self.cells[y+1][x-1].getState() == CellState.ALIVE:
-            aliveNeighbors += 1
-        # Bottom right
-        if x < (self.cols - 1) and y < (self.rows - 1) and self.cells[y+1][x+1].getState() == CellState.ALIVE:
-            aliveNeighbors += 1
-
-        return aliveNeighbors
-
     def update(self) -> None:
         for y in range(len(self.cells)):
             for x in range(len(self.cells[y])):
-                aliveNeighbors = self.getAliveCellNeighbors(x, y)
+                aliveNeighbors = cellAliveNeighborCount(x, y, self.cols, self.rows, self.cells)
                 cell = self.cells[y][x]
 
                 # 1. Alive cells with < 2 alive neighbors die (under-population).
