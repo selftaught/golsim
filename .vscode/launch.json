@@ -1,0 +1,16 @@
+{
+
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "PyGame DBG",
+            "type": "python",
+            "request": "launch",
+            "program": "game.py",
+            "args": [],
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}/venv/bin/python"
+            }
+        },
+    ]
+}

@@ -43,13 +43,13 @@ class Cell:
         self.nextState = state
 
 
-def cellAliveNeighborCount(x, y, columns, rows, cells):
+def cellAliveNeighborCount(x:int, y:int, cols:int, rows:int, cells:int):
         alive = 0
         # Left
         if x > 0 and cells[y][x-1].getState() == CellState.ALIVE:
             alive += 1
         # Right
-        if x < (columns - 1) and cells[y][x+1].getState() == CellState.ALIVE:
+        if x < (cols - 1) and cells[y][x+1].getState() == CellState.ALIVE:
             alive += 1
         # Top
         if y > 0 and cells[y-1][x].getState() == CellState.ALIVE:
@@ -61,13 +61,13 @@ def cellAliveNeighborCount(x, y, columns, rows, cells):
         if x > 0 and y > 0 and cells[y-1][x-1].getState() == CellState.ALIVE:
             alive += 1
         # Top right
-        if x < (columns - 1) and y > 0 and cells[y-1][x+1].getState() == CellState.ALIVE:
+        if x < (cols - 1) and y > 0 and cells[y-1][x+1].getState() == CellState.ALIVE:
             alive += 1
         # Bottom left
         if x > 0 and y < (rows - 1) and cells[y+1][x-1].getState() == CellState.ALIVE:
             alive += 1
         # Bottom right
-        if x < (columns - 1) and y < (rows - 1) and cells[y+1][x+1].getState() == CellState.ALIVE:
+        if x < (cols - 1) and y < (rows - 1) and cells[y+1][x+1].getState() == CellState.ALIVE:
             alive += 1
 
         return alive

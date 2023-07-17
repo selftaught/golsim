@@ -6,32 +6,21 @@ Python implementation of Conway's Game of Life
 
 ![Game of Life](https://i.imgur.com/YNgjamI.gif)
 
-## Setup
+## Install deps
 
-#### Method 1 (recommended)
+```
+python3 -m venv venv && \
+    source venv/bin/activate && \
+    pip3 install -r requirements.txt
+```
 
-`make venv`
-
-#### Method 2
-Create a virtual environment
-
-`python3 -m venv venv`
-
-Activate the venv
-
-`source venv/bin/activate`
-
-Install requirements
-
-`pip3 install -r requirements.txt`
-
-## Running
+## Run the game
 
 `python3 game.py`
 
-
 # TODO
 
+- [ ] Start splash screen
 - [ ] Interactive features such as play, stop, next controlls
 - [ ] Patterns to select and start with
 - [ ] Adjustable frame rate

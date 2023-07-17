@@ -1,7 +1,9 @@
 import pygame
 from pygame.locals import KEYDOWN, K_ESCAPE, MOUSEBUTTONUP, K_g
+from gameoflife.colors import BLUE
 from gameoflife.config import Config
 from gameoflife.grid import Grid
+from gameoflife.toolbar import Toolbar
 from gameoflife.cell import *
 
 
@@ -25,11 +27,12 @@ class Game:
         self.screen = pygame.display.set_mode([self.width, self.height])
         self.cellHeight = self.cfg.get('cell.height', default=5)
         self.cellWidth = self.cfg.get('cell.width', default=5)
-        self.rows = int(self.height / self.cellHeight)
+        self.rows = int((self.height - 100) / self.cellHeight)
         self.cols = int(self.width / self.cellWidth)
         self.clock = pygame.time.Clock()
         self.grid = Grid(self.cols, self.rows, self.cellWidth, self.cellHeight, enabled=False)
         self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)] for y in range(self.rows)]
+        self.toolbar = Toolbar(0, self.height - 100, self.width, 100)
         pygame.init()
 
     def isRunning(self):
@@ -37,12 +40,15 @@ class Game:
 
     def eventLoop(self):
         for event in pygame.event.get():
+            self.toolbar.eventHandler(event)
+            if event.type == MOUSEBUTTONUP:
+                print(f"MOUSEBUTTONUP\n")
             # Window was closed
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == KEYDOWN:
                 # ESC key down
-                if event.key == K_ESCAPE:
+                if event.key == K_ESCAPE :
                     self.running = False
                 if event.key == K_g:
                     self.grid.toggle()
@@ -60,7 +66,7 @@ class Game:
     def update(self) -> None:
         for y in range(len(self.cells)):
             for x in range(len(self.cells[y])):
-                aliveNeighbors = cellAliveNeighborCount(x, y, self.cols, self.rows, self.cells)
+                alive = cellAliveNeighborCount(x, y, self.cols, self.rows, self.cells)
                 cell = self.cells[y][x]
 
                 # 1. Alive cells with < 2 alive neighbors die (under-population).
@@ -68,14 +74,14 @@ class Game:
                 # 3. Alive cells with > 3 neighbors dies (over-population).
                 # 4. Dead cells with exactly 3 live neighbors becomes a live cell (reproduction).
                 if cell.getState() == CellState.ALIVE:
-                    if aliveNeighbors < 2:
+                    if alive < 2:
                         cell.setNextState(CellState.DEAD)
-                    elif aliveNeighbors == 2 or aliveNeighbors == 3:
+                    elif alive == 2 or alive == 3:
                         cell.setNextState(CellState.ALIVE)
-                    elif aliveNeighbors > 3:
+                    elif alive > 3:
                         cell.setNextState(CellState.DEAD)
                 elif cell.getState() == CellState.DEAD:
-                    if aliveNeighbors == 3:
+                    if alive == 3:
                         cell.setNextState(CellState.ALIVE)
                     else:
                         cell.setNextState(CellState.DEAD)
@@ -86,11 +92,23 @@ class Game:
                 nextState = cell.getNextState()
                 cell.setState(nextState)
 
+        self.toolbar.update()
+
     def draw(self) -> None:
         self.screen.fill((255, 255, 255))
         self.grid.draw(self.screen)
+
+
         for y in range(len(self.cells)):
             for x in range(len(self.cells[y])):
                 cell = self.cells[y][x]
                 cell.draw(self.screen)
-        pygame.display.flip()
+
+        self.toolbar.draw(self.screen)
+
+        mousePos = pygame.mouse.get_pos()
+        hackFont = pygame.font.SysFont('hack.ttf', 32)
+        mousePosImg = hackFont.render(f"{mousePos[0]}, {mousePos[1]}", True, BLUE)
+        self.screen.blit(mousePosImg, (25, self.height - 100))
+
+        pygame.display.update()
