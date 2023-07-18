@@ -16,19 +16,25 @@ class Toolbar:
         self.stopped = False
         self.reset = False
 
-        startBtnW = 100
-        startBtnH = 30
-        startBtnX = (x + width / 2) - (startBtnW / 2)
-        startBtnY = (y + height / 2) - (startBtnH / 2)
-        self.startBtn = Button("Stop", startBtnX, startBtnY, 100, 30)
+        self.startStopBtnW = 100
+        self.startStopBtnH = 30
+        self.startStopBtnX = (x + width / 2) - (self.startStopBtnW / 2)
+        self.startStopBtnY = (y + height / 2) - (self.startStopBtnH / 2)
+
+        self.hackFont = pygame.font.Font(None, 32)
+        self.startStopBtn = Button("Stop", self.hackFont, self.startStopBtnX, self.startStopBtnY, 100, 30)
+
+        self.buttons = []
 
     def update(self):
         pass
 
     def eventHandler(self, event:pygame.event):
         if event.type == MOUSEBUTTONUP:
-            print(f"MOUSEBUTTONUP\n")
-            print(pygame.mouse.get_pos())
+            (mouseX, mouseY) = pygame.mouse.get_pos()
+            if self.startStopBtn.clicked(mouseX, mouseY):
+                self.stopped = not self.stopped
+                self.startStopBtn.setText("Start" if self.stopped else "Stop")
 
     def isStopped(self):
         return self.stopped
@@ -47,9 +53,12 @@ class Toolbar:
         pygame.draw.rect(screen, LITE_GREY, bg)
         pygame.draw.line(screen, GREY, (self.x, self.y), (self.x + self.width, self.y))
         # TODO:
-        #   - start / stop button
-        self.startBtn.draw(screen)
+        self.startStopBtn.draw(screen)
         #   - reset button
         #   - next button
         #   - speed / fps dial
         #   - cell size dial
+
+        mousePos = pygame.mouse.get_pos()
+        mousePosImg = self.hackFont.render(f"{mousePos[0]}, {mousePos[1]}", True, BLACK)
+        screen.blit(mousePosImg, (self.x + 25, self.y + 25))

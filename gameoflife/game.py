@@ -21,6 +21,7 @@ class Game:
     screen : pygame.Surface = None
 
     def __init__(self) -> None:
+        pygame.init()
         self.cfg = Config()
         self.height = self.cfg.get('screen.height')
         self.width = self.cfg.get('screen.width')
@@ -30,10 +31,9 @@ class Game:
         self.rows = int((self.height - 100) / self.cellHeight)
         self.cols = int(self.width / self.cellWidth)
         self.clock = pygame.time.Clock()
-        self.grid = Grid(self.cols, self.rows, self.cellWidth, self.cellHeight, enabled=False)
+        self.grid = Grid(self.cols, self.rows, self.cellWidth, self.cellHeight)
         self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)] for y in range(self.rows)]
         self.toolbar = Toolbar(0, self.height - 100, self.width, 100)
-        pygame.init()
 
     def isRunning(self):
         return self.running
@@ -41,8 +41,6 @@ class Game:
     def eventLoop(self):
         for event in pygame.event.get():
             self.toolbar.eventHandler(event)
-            if event.type == MOUSEBUTTONUP:
-                print(f"MOUSEBUTTONUP\n")
             # Window was closed
             if event.type == pygame.QUIT:
                 self.running = False
@@ -64,33 +62,34 @@ class Game:
         pygame.quit()
 
     def update(self) -> None:
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                alive = cellAliveNeighborCount(x, y, self.cols, self.rows, self.cells)
-                cell = self.cells[y][x]
+        if not self.toolbar.isStopped():
+            for y in range(len(self.cells)):
+                for x in range(len(self.cells[y])):
+                    alive = cellAliveNeighborCount(x, y, self.cols, self.rows, self.cells)
+                    cell = self.cells[y][x]
 
-                # 1. Alive cells with < 2 alive neighbors die (under-population).
-                # 2. Alive cells with 2 or 3 neighbors survives to the next generation.
-                # 3. Alive cells with > 3 neighbors dies (over-population).
-                # 4. Dead cells with exactly 3 live neighbors becomes a live cell (reproduction).
-                if cell.getState() == CellState.ALIVE:
-                    if alive < 2:
-                        cell.setNextState(CellState.DEAD)
-                    elif alive == 2 or alive == 3:
-                        cell.setNextState(CellState.ALIVE)
-                    elif alive > 3:
-                        cell.setNextState(CellState.DEAD)
-                elif cell.getState() == CellState.DEAD:
-                    if alive == 3:
-                        cell.setNextState(CellState.ALIVE)
-                    else:
-                        cell.setNextState(CellState.DEAD)
+                    # 1. Alive cells with < 2 alive neighbors die (under-population).
+                    # 2. Alive cells with 2 or 3 neighbors survives to the next generation.
+                    # 3. Alive cells with > 3 neighbors dies (over-population).
+                    # 4. Dead cells with exactly 3 live neighbors becomes a live cell (reproduction).
+                    if cell.getState() == CellState.ALIVE:
+                        if alive < 2:
+                            cell.setNextState(CellState.DEAD)
+                        elif alive == 2 or alive == 3:
+                            cell.setNextState(CellState.ALIVE)
+                        elif alive > 3:
+                            cell.setNextState(CellState.DEAD)
+                    elif cell.getState() == CellState.DEAD:
+                        if alive == 3:
+                            cell.setNextState(CellState.ALIVE)
+                        else:
+                            cell.setNextState(CellState.DEAD)
 
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
-                nextState = cell.getNextState()
-                cell.setState(nextState)
+            for y in range(len(self.cells)):
+                for x in range(len(self.cells[y])):
+                    cell = self.cells[y][x]
+                    nextState = cell.getNextState()
+                    cell.setState(nextState)
 
         self.toolbar.update()
 
@@ -98,17 +97,11 @@ class Game:
         self.screen.fill((255, 255, 255))
         self.grid.draw(self.screen)
 
-
         for y in range(len(self.cells)):
             for x in range(len(self.cells[y])):
                 cell = self.cells[y][x]
                 cell.draw(self.screen)
 
         self.toolbar.draw(self.screen)
-
-        mousePos = pygame.mouse.get_pos()
-        hackFont = pygame.font.SysFont('hack.ttf', 32)
-        mousePosImg = hackFont.render(f"{mousePos[0]}, {mousePos[1]}", True, BLUE)
-        self.screen.blit(mousePosImg, (25, self.height - 100))
 
         pygame.display.update()
