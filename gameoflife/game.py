@@ -22,6 +22,12 @@ class Game:
 
     def __init__(self) -> None:
         pygame.init()
+        pygame.display.set_caption("Game of Life")
+
+        iconImg = pygame.image.load("images/gameoflife.png")
+        if iconImg:
+            pygame.display.set_icon(iconImg)
+
         self.cfg = Config()
         self.height = self.cfg.get('screen.height')
         self.width = self.cfg.get('screen.width')
@@ -41,11 +47,9 @@ class Game:
     def eventLoop(self):
         for event in pygame.event.get():
             self.toolbar.eventHandler(event)
-            # Window was closed
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == KEYDOWN:
-                # ESC key down
                 if event.key == K_ESCAPE :
                     self.running = False
                 if event.key == K_g:
@@ -58,13 +62,15 @@ class Game:
             self.eventLoop()
             self.update()
             self.draw()
-            self.clock.tick(self.cfg.get('fps', default=60))
+            self.clock.tick(self.cfg.get('fps', default=5))
         pygame.quit()
 
     def update(self) -> None:
-        if self.toolbar.isReset():
+        if self.toolbar.resetCells():
+            # TODO: instead of resetting to a random state - reset to the initial state
             self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)] for y in range(self.rows)]
-            self.toolbar.setReset(False)
+        elif self.toolbar.clearCells():
+            self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD) for x in range(self.cols)] for y in range(self.rows)]
 
         if not self.toolbar.isStopped() or self.toolbar.nextFrame():
             for y in range(len(self.cells)):
@@ -94,8 +100,6 @@ class Game:
                     cell = self.cells[y][x]
                     nextState = cell.getNextState()
                     cell.setState(nextState)
-
-        self.toolbar.update()
 
     def draw(self) -> None:
         self.screen.fill((255, 255, 255))

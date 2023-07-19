@@ -13,9 +13,7 @@ class Toolbar:
         self.y = y
         self.width = width
         self.height = height
-        self.stopped = False
-        self.reset = False
-        self.hackFont = pygame.font.Font(None, 32)
+        self.font = pygame.font.Font(None, 32)
 
         btnMargin = 30
         btnWidth = 100
@@ -23,19 +21,23 @@ class Toolbar:
 
         startStopBtnX = (x + width / 2) - (btnWidth / 2)
         startStopBtnY = (y + height / 2) - (btnHeight / 2)
-        self.startStopBtn = Button("Stop", self.hackFont, startStopBtnX, startStopBtnY, 100, 30)
+        self.startStopBtn = Button("Stop", self.font, startStopBtnX, startStopBtnY, 100, 30)
+        self.stopped = False
 
         resetBtnX = startStopBtnX - btnWidth - btnMargin
         resetBtnY = startStopBtnY
-        self.resetBtn = Button("Reset", self.hackFont, resetBtnX, resetBtnY, btnWidth, btnHeight)
+        self.resetBtn = Button("Reset", self.font, resetBtnX, resetBtnY, btnWidth, btnHeight)
+        self.reset = False
 
         nextBtnX = startStopBtnX + btnWidth + btnMargin
         nextBtnY = startStopBtnY
-        self.nextBtn = Button("Next", self.hackFont, nextBtnX, nextBtnY, btnWidth, btnHeight)
+        self.nextBtn = Button("Next", self.font, nextBtnX, nextBtnY, btnWidth, btnHeight)
         self.next = False
 
-    def update(self):
-        pass
+        clearBtnX = nextBtnX + btnWidth + btnMargin
+        clearBtnY = startStopBtnY
+        self.clearBtn = Button("Clear", self.font, clearBtnX, clearBtnY, btnWidth, btnHeight)
+        self.clear = False
 
     def eventHandler(self, event:pygame.event):
         if event.type == MOUSEBUTTONUP:
@@ -44,21 +46,24 @@ class Toolbar:
                 self.stopped = not self.stopped
                 self.startStopBtn.setText("Start" if self.stopped else "Stop")
             elif self.resetBtn.clicked(mX, mY):
-                self.setReset(True)
+                self.reset = True
             elif self.nextBtn.clicked(mX, mY):
                 self.next = True
+            elif self.clearBtn.clicked(mX, mY):
+                self.clear = True
 
     def isStopped(self):
         return self.stopped
 
-    def setStopped(self, state:bool):
-        self.stopped = state
+    def resetCells(self):
+        reset = self.reset
+        self.reset = False
+        return reset
 
-    def isReset(self):
-        return self.reset
-
-    def setReset(self, state:bool):
-        self.reset = state
+    def clearCells(self):
+        clear = self.clear
+        self.clear = False
+        return clear
 
     def nextFrame(self):
         next = self.next
@@ -74,11 +79,12 @@ class Toolbar:
         self.startStopBtn.draw(screen)
         self.resetBtn.draw(screen)
         self.nextBtn.draw(screen)
+        self.clearBtn.draw(screen)
 
         # TODO:
         #   - speed / fps dial
         #   - cell size dial
 
         mousePos = pygame.mouse.get_pos()
-        mousePosImg = self.hackFont.render(f"{mousePos[0]}, {mousePos[1]}", True, BLACK)
+        mousePosImg = self.font.render(f"{mousePos[0]}, {mousePos[1]}", True, BLACK)
         screen.blit(mousePosImg, (self.x + 25, self.y + 25))

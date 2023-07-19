@@ -14,6 +14,18 @@ class Button:
         self.rect = pygame.Rect(x, y, w, h)
         self.bgColor = GREY
 
+    def setX(self, x):
+        self.x = x
+
+    def setY(self, y):
+        self.y = y
+
+    def setW(self, w):
+        self.w = w
+
+    def setH(self, h):
+        self.h = h
+
     def setFont(self, font:Font):
         self.font = font
 
