@@ -20,7 +20,7 @@ class Cell:
         self.height = height
 
         if state is None:
-            self.state = CellState.ALIVE if random.randint(0 , 100) >= 50 else CellState.DEAD
+            self.state = CellState.ALIVE if random.randint(0 , 100) < 10 else CellState.DEAD
         else:
             self.state = state
 

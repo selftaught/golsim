@@ -15,26 +15,38 @@ class Toolbar:
         self.height = height
         self.stopped = False
         self.reset = False
-
-        self.startStopBtnW = 100
-        self.startStopBtnH = 30
-        self.startStopBtnX = (x + width / 2) - (self.startStopBtnW / 2)
-        self.startStopBtnY = (y + height / 2) - (self.startStopBtnH / 2)
-
         self.hackFont = pygame.font.Font(None, 32)
-        self.startStopBtn = Button("Stop", self.hackFont, self.startStopBtnX, self.startStopBtnY, 100, 30)
 
-        self.buttons = []
+        btnMargin = 30
+        btnWidth = 100
+        btnHeight = 30
+
+        startStopBtnX = (x + width / 2) - (btnWidth / 2)
+        startStopBtnY = (y + height / 2) - (btnHeight / 2)
+        self.startStopBtn = Button("Stop", self.hackFont, startStopBtnX, startStopBtnY, 100, 30)
+
+        resetBtnX = startStopBtnX - btnWidth - btnMargin
+        resetBtnY = startStopBtnY
+        self.resetBtn = Button("Reset", self.hackFont, resetBtnX, resetBtnY, btnWidth, btnHeight)
+
+        nextBtnX = startStopBtnX + btnWidth + btnMargin
+        nextBtnY = startStopBtnY
+        self.nextBtn = Button("Next", self.hackFont, nextBtnX, nextBtnY, btnWidth, btnHeight)
+        self.next = False
 
     def update(self):
         pass
 
     def eventHandler(self, event:pygame.event):
         if event.type == MOUSEBUTTONUP:
-            (mouseX, mouseY) = pygame.mouse.get_pos()
-            if self.startStopBtn.clicked(mouseX, mouseY):
+            (mX, mY) = pygame.mouse.get_pos()
+            if self.startStopBtn.clicked(mX, mY):
                 self.stopped = not self.stopped
                 self.startStopBtn.setText("Start" if self.stopped else "Stop")
+            elif self.resetBtn.clicked(mX, mY):
+                self.setReset(True)
+            elif self.nextBtn.clicked(mX, mY):
+                self.next = True
 
     def isStopped(self):
         return self.stopped
@@ -48,14 +60,22 @@ class Toolbar:
     def setReset(self, state:bool):
         self.reset = state
 
+    def nextFrame(self):
+        next = self.next
+        self.next = False
+        return next
+
     def draw(self, screen:Surface):
         bg = Rect(self.x, self.y, self.width, self.height)
+
         pygame.draw.rect(screen, LITE_GREY, bg)
         pygame.draw.line(screen, GREY, (self.x, self.y), (self.x + self.width, self.y))
-        # TODO:
+
         self.startStopBtn.draw(screen)
-        #   - reset button
-        #   - next button
+        self.resetBtn.draw(screen)
+        self.nextBtn.draw(screen)
+
+        # TODO:
         #   - speed / fps dial
         #   - cell size dial
 

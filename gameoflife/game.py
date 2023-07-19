@@ -62,7 +62,11 @@ class Game:
         pygame.quit()
 
     def update(self) -> None:
-        if not self.toolbar.isStopped():
+        if self.toolbar.isReset():
+            self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)] for y in range(self.rows)]
+            self.toolbar.setReset(False)
+
+        if not self.toolbar.isStopped() or self.toolbar.nextFrame():
             for y in range(len(self.cells)):
                 for x in range(len(self.cells[y])):
                     alive = cellAliveNeighborCount(x, y, self.cols, self.rows, self.cells)
