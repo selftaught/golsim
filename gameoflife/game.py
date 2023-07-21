@@ -1,9 +1,9 @@
 import pygame
 from pygame.locals import KEYDOWN, K_ESCAPE, MOUSEBUTTONUP, K_g
-from gameoflife.colors import BLUE
+from gameoflife.colors import BLUE, BLACK
 from gameoflife.config import Config
 from gameoflife.grid import Grid
-from gameoflife.toolbar import Toolbar
+from gameoflife.actions import Actions
 from gameoflife.cell import *
 
 
@@ -39,14 +39,14 @@ class Game:
         self.clock = pygame.time.Clock()
         self.grid = Grid(self.cols, self.rows, self.cellWidth, self.cellHeight)
         self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)] for y in range(self.rows)]
-        self.toolbar = Toolbar(0, self.height - 100, self.width, 100)
+        self.actions = Actions(0, self.height - 100, self.width, 100)
 
     def isRunning(self):
         return self.running
 
     def eventLoop(self):
         for event in pygame.event.get():
-            self.toolbar.eventHandler(event)
+            self.actions.eventHandler(event)
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == KEYDOWN:
@@ -55,7 +55,15 @@ class Game:
                 if event.key == K_g:
                     self.grid.toggle()
             elif event.type == MOUSEBUTTONUP:
-                pass
+                (mouseX, mouseY) = pygame.mouse.get_pos()
+                if mouseY < self.height - self.actions.getHeight():
+                    cellX = int(mouseX / self.cellWidth)
+                    cellY = int(mouseY / self.cellHeight)
+                    try:
+                        cell = self.cells[cellY][cellX]
+                        cell.setState(CellState.DEAD if cell.getState() == CellState.ALIVE else CellState.ALIVE)
+                    except Exception as e:
+                        print(e)
 
     def loop(self) -> None:
         while self.isRunning():
@@ -66,13 +74,14 @@ class Game:
         pygame.quit()
 
     def update(self) -> None:
-        if self.toolbar.resetCells():
+        if self.actions.resetCells():
             # TODO: instead of resetting to a random state - reset to the initial state
             self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)] for y in range(self.rows)]
-        elif self.toolbar.clearCells():
+        elif self.actions.clearCells():
+            self.actions.stop()
             self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD) for x in range(self.cols)] for y in range(self.rows)]
 
-        if not self.toolbar.isStopped() or self.toolbar.nextFrame():
+        if not self.actions.isStopped() or self.actions.nextFrame():
             for y in range(len(self.cells)):
                 for x in range(len(self.cells[y])):
                     alive = cellAliveNeighborCount(x, y, self.cols, self.rows, self.cells)
@@ -110,6 +119,12 @@ class Game:
                 cell = self.cells[y][x]
                 cell.draw(self.screen)
 
-        self.toolbar.draw(self.screen)
+        self.actions.draw(self.screen)
+
+        (mouseX, mouseY) = pygame.mouse.get_pos()
+        cellX = int(mouseX / self.cellWidth)
+        cellY = int(mouseY / self.cellHeight)
+        mousePosImg = pygame.font.Font(None, 32).render(f"{cellX}, {cellY}", True, BLACK)
+        self.screen.blit(mousePosImg, (25, self.height - self.actions.getHeight() + 50))
 
         pygame.display.update()

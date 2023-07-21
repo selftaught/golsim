@@ -7,7 +7,7 @@ from gameoflife.colors import BLACK, LITE_GREY , GREY
 
 
 
-class Toolbar:
+class Actions:
     def __init__(self, x:int, y:int, width:int, height:int) -> None:
         self.x = x
         self.y = y
@@ -29,6 +29,11 @@ class Toolbar:
         self.resetBtn = Button("Reset", self.font, resetBtnX, resetBtnY, btnWidth, btnHeight)
         self.reset = False
 
+        recordBtnX = resetBtnX - btnWidth - btnMargin
+        recordBtnY = startStopBtnY
+        self.recordBtn = Button("Record", self.font, recordBtnX, recordBtnY, btnWidth, btnHeight)
+        self.record = False
+
         nextBtnX = startStopBtnX + btnWidth + btnMargin
         nextBtnY = startStopBtnY
         self.nextBtn = Button("Next", self.font, nextBtnX, nextBtnY, btnWidth, btnHeight)
@@ -38,6 +43,7 @@ class Toolbar:
         clearBtnY = startStopBtnY
         self.clearBtn = Button("Clear", self.font, clearBtnX, clearBtnY, btnWidth, btnHeight)
         self.clear = False
+
 
     def eventHandler(self, event:pygame.event):
         if event.type == MOUSEBUTTONUP:
@@ -52,8 +58,15 @@ class Toolbar:
             elif self.clearBtn.clicked(mX, mY):
                 self.clear = True
 
+    def getHeight(self):
+        return self.height
+
     def isStopped(self):
         return self.stopped
+
+    def stop(self):
+        self.stopped = True
+        self.startStopBtn.setText("Start")
 
     def resetCells(self):
         reset = self.reset
@@ -80,11 +93,12 @@ class Toolbar:
         self.resetBtn.draw(screen)
         self.nextBtn.draw(screen)
         self.clearBtn.draw(screen)
+        self.recordBtn.draw(screen)
 
         # TODO:
         #   - speed / fps dial
         #   - cell size dial
 
-        mousePos = pygame.mouse.get_pos()
-        mousePosImg = self.font.render(f"{mousePos[0]}, {mousePos[1]}", True, BLACK)
+        (mouseX, mouseY) = pygame.mouse.get_pos()
+        mousePosImg = self.font.render(f"{mouseX}, {mouseY}", True, BLACK)
         screen.blit(mousePosImg, (self.x + 25, self.y + 25))

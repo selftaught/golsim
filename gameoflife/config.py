@@ -2,6 +2,7 @@ import json
 import os
 
 from benedict import benedict
+from typing import Any
 
 
 class Config:
@@ -21,7 +22,7 @@ class Config:
     def load(self) -> None:
         self.cfg = benedict(self.path(), format='json')
 
-    def get(self, key, default=None):
+    def get(self, key:str, default:Any=None) -> Any:
         if key in self.cfg:
             return self.cfg[key]
         elif default is not None:
