@@ -38,13 +38,13 @@ class Game:
         self.cols = int(self.width / self.cellWidth)
         self.clock = pygame.time.Clock()
         self.grid = Grid(self.cols, self.rows, self.cellWidth, self.cellHeight)
-        self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)] for y in range(self.rows)]
+        self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD) for x in range(self.cols)] for y in range(self.rows)]
         self.actions = Actions(0, self.height - 100, self.width, 100)
 
-    def isRunning(self):
+    def isRunning(self) -> bool:
         return self.running
 
-    def eventLoop(self):
+    def eventLoop(self) -> None:
         for event in pygame.event.get():
             self.actions.eventHandler(event)
             if event.type == pygame.QUIT:
@@ -104,11 +104,17 @@ class Game:
                         else:
                             cell.setNextState(CellState.DEAD)
 
+            allCellsDead = True
             for y in range(len(self.cells)):
                 for x in range(len(self.cells[y])):
                     cell = self.cells[y][x]
                     nextState = cell.getNextState()
                     cell.setState(nextState)
+                    if nextState == CellState.ALIVE:
+                        allCellsDead = False
+
+            if allCellsDead:
+                self.actions.stop()
 
     def draw(self) -> None:
         self.screen.fill((255, 255, 255))

@@ -18,7 +18,7 @@ class Cell:
         self.y = y
         self.width = width
         self.height = height
-
+        self.state = CellState.DEAD
         if state is None:
             self.state = CellState.ALIVE if random.randint(0 , 100) < 10 else CellState.DEAD
         else:

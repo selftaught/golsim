@@ -14,28 +14,28 @@ class Button:
         self.rect = pygame.Rect(x, y, w, h)
         self.bgColor = GREY
 
-    def setX(self, x):
+    def setX(self, x) -> None:
         self.x = x
 
-    def setY(self, y):
+    def setY(self, y) -> None:
         self.y = y
 
-    def setW(self, w):
+    def setW(self, w) -> None:
         self.w = w
 
-    def setH(self, h):
+    def setH(self, h) -> None:
         self.h = h
 
-    def setFont(self, font:Font):
+    def setFont(self, font:Font) -> None:
         self.font = font
 
-    def setBackgroundColor(self, bgColor:tuple):
+    def setBackgroundColor(self, bgColor:tuple) -> None:
         self.bgColor = bgColor
 
-    def setText(self, text:str):
+    def setText(self, text:str) -> None:
         self.text = text
 
-    def draw(self, screen:pygame.Surface):
+    def draw(self, screen:pygame.Surface) -> None:
         pygame.draw.rect(screen, self.bgColor, self.rect)
         textImg = self.font.render(self.text, True, (255, 255, 255))
         fontSize = self.font.size(self.text)

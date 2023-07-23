@@ -21,8 +21,8 @@ class Actions:
 
         startStopBtnX = (x + width / 2) - (btnWidth / 2)
         startStopBtnY = (y + height / 2) - (btnHeight / 2)
-        self.startStopBtn = Button("Stop", self.font, startStopBtnX, startStopBtnY, 100, 30)
-        self.stopped = False
+        self.startStopBtn = Button("Start", self.font, startStopBtnX, startStopBtnY, 100, 30)
+        self.stopped = True
 
         resetBtnX = startStopBtnX - btnWidth - btnMargin
         resetBtnY = startStopBtnY
@@ -44,8 +44,12 @@ class Actions:
         self.clearBtn = Button("Clear", self.font, clearBtnX, clearBtnY, btnWidth, btnHeight)
         self.clear = False
 
+        lexiconBtnX = clearBtnX + btnWidth + btnMargin
+        lexiconBtnY = startStopBtnY
+        self.lexiconBtn = Button("Lexicons", self.font, lexiconBtnX, lexiconBtnY, btnWidth, btnHeight)
 
-    def eventHandler(self, event:pygame.event):
+
+    def eventHandler(self, event:pygame.event) -> None:
         if event.type == MOUSEBUTTONUP:
             (mX, mY) = pygame.mouse.get_pos()
             if self.startStopBtn.clicked(mX, mY):
@@ -58,32 +62,32 @@ class Actions:
             elif self.clearBtn.clicked(mX, mY):
                 self.clear = True
 
-    def getHeight(self):
+    def getHeight(self) -> int:
         return self.height
 
-    def isStopped(self):
+    def isStopped(self) -> bool:
         return self.stopped
 
-    def stop(self):
+    def stop(self) -> None:
         self.stopped = True
         self.startStopBtn.setText("Start")
 
-    def resetCells(self):
+    def resetCells(self) -> bool:
         reset = self.reset
         self.reset = False
         return reset
 
-    def clearCells(self):
+    def clearCells(self) -> bool:
         clear = self.clear
         self.clear = False
         return clear
 
-    def nextFrame(self):
+    def nextFrame(self) -> bool:
         next = self.next
         self.next = False
         return next
 
-    def draw(self, screen:Surface):
+    def draw(self, screen:Surface) -> None:
         bg = Rect(self.x, self.y, self.width, self.height)
 
         pygame.draw.rect(screen, LITE_GREY, bg)
@@ -94,6 +98,7 @@ class Actions:
         self.nextBtn.draw(screen)
         self.clearBtn.draw(screen)
         self.recordBtn.draw(screen)
+        self.lexiconBtn.draw(screen)
 
         # TODO:
         #   - speed / fps dial
