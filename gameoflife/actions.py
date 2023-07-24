@@ -44,10 +44,10 @@ class Actions:
         self.clearBtn = Button("Clear", self.font, clearBtnX, clearBtnY, btnWidth, btnHeight)
         self.clear = False
 
-        lexiconBtnX = clearBtnX + btnWidth + btnMargin
-        lexiconBtnY = startStopBtnY
-        self.lexiconBtn = Button("Lexicons", self.font, lexiconBtnX, lexiconBtnY, btnWidth, btnHeight)
-
+        patternsBtnX = clearBtnX + btnWidth + btnMargin
+        patternsBtnY = startStopBtnY
+        self.patternsBtn = Button("Patterns", self.font, patternsBtnX, patternsBtnY, btnWidth, btnHeight)
+        self.patternsMenu = False
 
     def eventHandler(self, event:pygame.event) -> None:
         if event.type == MOUSEBUTTONUP:
@@ -61,6 +61,8 @@ class Actions:
                 self.next = True
             elif self.clearBtn.clicked(mX, mY):
                 self.clear = True
+            elif self.patternsBtn.clicked(mX, mY):
+                self.patternsMenu = not self.patternsMenu
 
     def getHeight(self) -> int:
         return self.height
@@ -87,6 +89,9 @@ class Actions:
         self.next = False
         return next
 
+    def showPatternsMenu(self) -> bool:
+        return self.patternsMenu
+
     def draw(self, screen:Surface) -> None:
         bg = Rect(self.x, self.y, self.width, self.height)
 
@@ -98,7 +103,7 @@ class Actions:
         self.nextBtn.draw(screen)
         self.clearBtn.draw(screen)
         self.recordBtn.draw(screen)
-        self.lexiconBtn.draw(screen)
+        self.patternsBtn.draw(screen)
 
         # TODO:
         #   - speed / fps dial

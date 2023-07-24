@@ -6,12 +6,12 @@ class CellState:
     ALIVE = True
 
 class Cell:
-    x : int = None
-    y : int = None
-    width : int = None
-    height : int = None
-    state : CellState = None
-    nextState: CellState = None
+    x:int = None
+    y:int = None
+    width:int = None
+    height:int = None
+    state:CellState = None
+    nextState:CellState = None
 
     def __init__(self, x:int, y:int, width:int, height:int, state:CellState = None) -> None:
         self.x = x
@@ -25,10 +25,9 @@ class Cell:
             self.state = state
 
     def draw(self, screen : pygame.Surface):
-        if self.state == CellState.ALIVE:
-            surface = pygame.Surface((self.width, self.height))
-            surface.fill((0, 0, 0))
-            screen.blit(surface, (self.x * self.width, self.y * self.height))
+        surface = pygame.Surface((self.width, self.height))
+        surface.fill((0, 0, 0) if self.state == CellState.ALIVE else (255, 255, 255))
+        screen.blit(surface, (self.x * self.width, self.y * self.height))
 
     def getState(self) -> CellState:
         return self.state
@@ -41,6 +40,12 @@ class Cell:
 
     def setNextState(self, state:CellState) -> None:
         self.nextState = state
+
+    def setHeight(self, height:int) -> None:
+        self.height = height
+
+    def setWidth(self, width:int) -> None:
+        self.width = width
 
 
 def cellAliveNeighborCount(x:int, y:int, cols:int, rows:int, cells:int):

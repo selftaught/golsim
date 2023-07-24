@@ -1,24 +1,27 @@
+import glob
 import pygame
+
 from pygame.locals import KEYDOWN, K_ESCAPE, MOUSEBUTTONUP, K_g
 from gameoflife.colors import BLUE, BLACK
 from gameoflife.config import Config
 from gameoflife.grid import Grid
 from gameoflife.actions import Actions
 from gameoflife.cell import *
+from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
 
 class Game:
-    cfg : Config = None
-    running : bool = True
-    height : int
-    width : int
-    cellHeight : int = None
-    cellWidth : int = None
-    cells : list = []
-    cols : int = None
-    rows : int = None
-    clock : pygame.time.Clock = None
-    screen : pygame.Surface = None
+    cfg:Config = None
+    running:bool = True
+    height:int
+    width:int
+    cellHeight:int = None
+    cellWidth:int = None
+    cells:list = []
+    cols:int = None
+    rows:int = None
+    clock:pygame.time.Clock = None
+    screen:pygame.Surface = None
 
     def __init__(self) -> None:
         pygame.init()
@@ -40,6 +43,9 @@ class Game:
         self.grid = Grid(self.cols, self.rows, self.cellWidth, self.cellHeight)
         self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD) for x in range(self.cols)] for y in range(self.rows)]
         self.actions = Actions(0, self.height - 100, self.width, 100)
+        self.patterns = []
+        self.patternsMenu = PatternMenu(50, 50, 200)
+        self.loadPatterns()
 
     def isRunning(self) -> bool:
         return self.running
@@ -75,7 +81,7 @@ class Game:
 
     def update(self) -> None:
         if self.actions.resetCells():
-            # TODO: instead of resetting to a random state - reset to the initial state
+            # TODO: instead of resetting to a random state - reset to the initial state?
             self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)] for y in range(self.rows)]
         elif self.actions.clearCells():
             self.actions.stop()
@@ -127,10 +133,31 @@ class Game:
 
         self.actions.draw(self.screen)
 
+        if self.actions.showPatternsMenu():
+            self.patternsMenu.draw(self.screen)
+
         (mouseX, mouseY) = pygame.mouse.get_pos()
         cellX = int(mouseX / self.cellWidth)
         cellY = int(mouseY / self.cellHeight)
-        mousePosImg = pygame.font.Font(None, 32).render(f"{cellX}, {cellY}", True, BLACK)
-        self.screen.blit(mousePosImg, (25, self.height - self.actions.getHeight() + 50))
+        #mousePosImg = pygame.font.Font(None, 32).render(f"{cellX}, {cellY}", True, BLACK)
+        #self.screen.blit(mousePosImg, (25, self.height - self.actions.getHeight() + 50))
 
         pygame.display.update()
+
+    def loadPatterns(self) -> None:
+        # still lifes
+        for patternFilePath in sorted(glob.glob('patterns/still-lifes/*')):
+            patternName = patternFilePath.split('/')[-1]
+            self.patterns.append(Pattern(patternName, patternFilePath, PatternType.StillLife))
+
+        # oscillators
+        #for patternFilePath in glob.glob('patterns/oscillators/*'):
+        #    patternName = patternFilePath.split('/')[-1]
+        #    self.patterns.append(Pattern(patternName, patternFilePath, PatternType.Oscillator))
+
+        # spaceships
+        #for patternFilePath in glob.glob('patterns/spaceships/*'):
+        #    patternName = patternFilePath.split('/')[-1]
+        #    self.patterns.append(Pattern(patternName, patternFilePath, PatternType.Spacehship))
+
+        self.patternsMenu.setPatterns(self.patterns)
