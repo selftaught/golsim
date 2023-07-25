@@ -53,6 +53,9 @@ class Game:
     def eventLoop(self) -> None:
         for event in pygame.event.get():
             self.actions.eventHandler(event)
+            if self.actions.showPatternsMenu():
+                self.patternsMenu.eventHandler(event)
+
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == KEYDOWN:
@@ -135,12 +138,6 @@ class Game:
 
         if self.actions.showPatternsMenu():
             self.patternsMenu.draw(self.screen)
-
-        (mouseX, mouseY) = pygame.mouse.get_pos()
-        cellX = int(mouseX / self.cellWidth)
-        cellY = int(mouseY / self.cellHeight)
-        #mousePosImg = pygame.font.Font(None, 32).render(f"{cellX}, {cellY}", True, BLACK)
-        #self.screen.blit(mousePosImg, (25, self.height - self.actions.getHeight() + 50))
 
         pygame.display.update()
 

@@ -19,6 +19,7 @@ class Cell:
         self.width = width
         self.height = height
         self.state = CellState.DEAD
+        self.colors = {CellState.ALIVE: (0, 0, 0), CellState.DEAD: (255, 255, 255)}
         if state is None:
             self.state = CellState.ALIVE if random.randint(0 , 100) < 10 else CellState.DEAD
         else:
@@ -26,7 +27,7 @@ class Cell:
 
     def draw(self, screen : pygame.Surface):
         surface = pygame.Surface((self.width, self.height))
-        surface.fill((0, 0, 0) if self.state == CellState.ALIVE else (255, 255, 255))
+        surface.fill(self.colors[self.state])
         screen.blit(surface, (self.x * self.width, self.y * self.height))
 
     def getState(self) -> CellState:
@@ -40,6 +41,9 @@ class Cell:
 
     def setNextState(self, state:CellState) -> None:
         self.nextState = state
+
+    def setStateColor(self, state:CellState, color) -> None:
+        self.colors[state] = color
 
     def setHeight(self, height:int) -> None:
         self.height = height

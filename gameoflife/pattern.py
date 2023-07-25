@@ -3,7 +3,8 @@ from typing import Union, List
 # Oscillators:
 # Spaceships:
 from gameoflife.cell import Cell, CellState
-from gameoflife.colors import WHITE, BLACK
+from gameoflife.colors import WHITE, BLACK, GREY_LIGHT1, GREY_LIGHT2, GREY, RED
+from gameoflife.helpers import drawRectBorder
 from pygame import Surface, draw, Rect
 from pygame.font import Font
 
@@ -19,12 +20,14 @@ class Pattern:
         self.rows:list = 0
         self.cols:list = 0
         self.name:str = name
+        self.desc:str = '' # TODO
         self.path:str = path
         self.type:PatternType = type
         self.cells:List[List] = []
-        self.cellWidth = 5
-        self.cellHeight = 5
+        self.cellWidth = 10
+        self.cellHeight = 10
         self.rowMaxLen = 0
+        self.bgColor = GREY_LIGHT1
         self._load()
 
     def _load(self):
@@ -49,6 +52,13 @@ class Pattern:
     def getHeight(self) -> int:
         return self.cellHeight * len(self.cells)
 
+    def setBgColor(self, color) -> None:
+        self.bgColor = color
+        for y in range(len(self.cells)):
+            for x in range(len(self.cells[y])):
+                cell = self.cells[y][x]
+                cell.setStateColor(CellState.DEAD, color)
+
     def setCellHeight(self, height:int) -> None:
         self.cellHeight = height
         for y in range(len(self.cells)):
@@ -58,16 +68,22 @@ class Pattern:
 
     def setCellWidth(self, width:int) -> None:
         self.cellWidth = width
+        for y in range(len(self.cells)):
+            for x in range(len(self.cells[y])):
+                cell = self.cells[y][x]
+                cell.setHeight(width)
 
     def getSurface(self) -> Surface:
         width = self.rowMaxLen * self.cellWidth
         height = len(self.cells) * self.cellHeight
         surf = Surface((width, height))
+        surf.fill(self.bgColor)
         print(self.name, (width, height))
         for y in range(len(self.cells)):
             for x in range(len(self.cells[y])):
                 cell = self.cells[y][x]
                 cell.draw(surf)
+        #draw.line()
         return surf
 
 class PatternMenu:
@@ -76,7 +92,6 @@ class PatternMenu:
         self.x:int = x
         self.y:int = y
         self.w:int = w
-        self.rowHeight = 50
         self.font = None
 
     def setFont(self, font:Font) -> None:
@@ -85,18 +100,29 @@ class PatternMenu:
     def setPatterns(self, patterns:List) -> None:
         self.patterns = patterns
 
+    def eventHandler(self, event):
+        pass
+
     def draw(self, screen:Surface):
-        h = 300
-        rect = Rect(self.x, self.y, self.w, h)
-
-        draw.rect(screen, WHITE, rect)
-        draw.line(screen, BLACK, (self.x, self.y), (self.x + self.w, self.y)) # top
-        draw.line(screen, BLACK, (self.x, self.y), (self.x, self.y + h))
-        draw.line(screen, BLACK, (self.x + self.w, self.y), (self.x + self.w, self.y + h))
-        draw.line(screen, BLACK, (self.x, self.y + h), (self.x + self.w, self.y + h))
-
-        row = 0
+        padding = 20
+        height = padding
         for pattern in self.patterns:
+            height += (pattern.getHeight() + padding)
+
+        rect = Rect(self.x, self.y, self.w, height)
+        bgColor = GREY_LIGHT1
+
+        draw.rect(screen, bgColor, rect)
+        drawRectBorder(screen, self.x, self.y, self.w, height)
+
+        yOffset = padding
+        for pattern in self.patterns:
+            pattern.setBgColor(bgColor)
             patternSurf = pattern.getSurface()
-            screen.blit(patternSurf, (self.x + 15, self.y + (row * pattern.getHeight())))
-            row += 1
+            patternHeight = pattern.getHeight()
+            screen.blit(patternSurf, (self.x + padding, self.y + yOffset))
+            drawRectBorder(screen, self.x + padding - 5, self.y + yOffset - 5, self.w - ((padding - 5) * 2), patternHeight + 10, GREY)
+            yOffset += patternHeight + padding
+
+        draw.circle(screen, RED, (self.x + self.w, self.y), 10)
+        draw.circle(screen, BLACK, (self.x + self.w, self.y), 10, 1)

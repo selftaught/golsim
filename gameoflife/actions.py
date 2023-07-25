@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface, Rect
 from pygame.locals import *
 from gameoflife.button import Button
-from gameoflife.colors import BLACK, LITE_GREY , GREY
+from gameoflife.colors import BLACK, GREY_LIGHT1, GREY
 
 
 
@@ -95,7 +95,7 @@ class Actions:
     def draw(self, screen:Surface) -> None:
         bg = Rect(self.x, self.y, self.width, self.height)
 
-        pygame.draw.rect(screen, LITE_GREY, bg)
+        pygame.draw.rect(screen, GREY_LIGHT1, bg)
         pygame.draw.line(screen, GREY, (self.x, self.y), (self.x + self.width, self.y))
 
         self.startStopBtn.draw(screen)
