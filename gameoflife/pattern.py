@@ -2,6 +2,7 @@ from typing import Union, List
 # Still lifes:
 # Oscillators:
 # Spaceships:
+from gameoflife.button import CircleButton
 from gameoflife.cell import Cell, CellState
 from gameoflife.colors import WHITE, BLACK, GREY_LIGHT1, GREY_LIGHT2, GREY, RED
 from gameoflife.helpers import drawRectBorder
@@ -87,15 +88,16 @@ class Pattern:
         return surf
 
 class PatternMenu:
-    def __init__(self, x:int, y:
-        int, w:int) -> None:
+    def __init__(self, x:int, y:int, w:int) -> None:
         self.x:int = x
         self.y:int = y
         self.w:int = w
         self.font = None
+        self.closeBtn = CircleButton("X", self.font, self.x + self.w, self.y, 10, RED)
 
     def setFont(self, font:Font) -> None:
         self.font = font
+        self.closeBtn.setFont(font)
 
     def setPatterns(self, patterns:List) -> None:
         self.patterns = patterns
@@ -124,5 +126,4 @@ class PatternMenu:
             drawRectBorder(screen, self.x + padding - 5, self.y + yOffset - 5, self.w - ((padding - 5) * 2), patternHeight + 10, GREY)
             yOffset += patternHeight + padding
 
-        draw.circle(screen, RED, (self.x + self.w, self.y), 10)
-        draw.circle(screen, BLACK, (self.x + self.w, self.y), 10, 1)
+        self.closeBtn.draw(screen)

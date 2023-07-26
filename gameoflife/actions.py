@@ -2,7 +2,7 @@ import pygame
 
 from pygame import Surface, Rect
 from pygame.locals import *
-from gameoflife.button import Button
+from gameoflife.button import RectButton
 from gameoflife.colors import BLACK, GREY_LIGHT1, GREY
 
 
@@ -21,32 +21,32 @@ class Actions:
 
         startStopBtnX = (x + width / 2) - (btnWidth / 2)
         startStopBtnY = (y + height / 2) - (btnHeight / 2)
-        self.startStopBtn = Button("Start", self.font, startStopBtnX, startStopBtnY, 100, 30)
+        self.startStopBtn = RectButton("Start", self.font, startStopBtnX, startStopBtnY, 100, 30)
         self.stopped = True
 
         resetBtnX = startStopBtnX - btnWidth - btnMargin
         resetBtnY = startStopBtnY
-        self.resetBtn = Button("Reset", self.font, resetBtnX, resetBtnY, btnWidth, btnHeight)
+        self.resetBtn = RectButton("Reset", self.font, resetBtnX, resetBtnY, btnWidth, btnHeight)
         self.reset = False
 
         recordBtnX = resetBtnX - btnWidth - btnMargin
         recordBtnY = startStopBtnY
-        self.recordBtn = Button("Record", self.font, recordBtnX, recordBtnY, btnWidth, btnHeight)
+        self.recordBtn = RectButton("Record", self.font, recordBtnX, recordBtnY, btnWidth, btnHeight)
         self.record = False
 
         nextBtnX = startStopBtnX + btnWidth + btnMargin
         nextBtnY = startStopBtnY
-        self.nextBtn = Button("Next", self.font, nextBtnX, nextBtnY, btnWidth, btnHeight)
+        self.nextBtn = RectButton("Next", self.font, nextBtnX, nextBtnY, btnWidth, btnHeight)
         self.next = False
 
         clearBtnX = nextBtnX + btnWidth + btnMargin
         clearBtnY = startStopBtnY
-        self.clearBtn = Button("Clear", self.font, clearBtnX, clearBtnY, btnWidth, btnHeight)
+        self.clearBtn = RectButton("Clear", self.font, clearBtnX, clearBtnY, btnWidth, btnHeight)
         self.clear = False
 
         patternsBtnX = clearBtnX + btnWidth + btnMargin
         patternsBtnY = startStopBtnY
-        self.patternsBtn = Button("Patterns", self.font, patternsBtnX, patternsBtnY, btnWidth, btnHeight)
+        self.patternsBtn = RectButton("Patterns", self.font, patternsBtnX, patternsBtnY, btnWidth, btnHeight)
         self.patternsMenu = False
 
     def eventHandler(self, event:pygame.event) -> None:
