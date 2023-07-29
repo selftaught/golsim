@@ -17,6 +17,7 @@ class BaseButton:
         bgColor: Color,
     ) -> None:
         self.text = text
+        self.id = text
         self.x = x
         self.y = y
         self.w = w
@@ -24,6 +25,9 @@ class BaseButton:
         self.border = True
         self.borderColor = BLACK
         self.cursor = pygame.SYSTEM_CURSOR_ARROW
+
+    def getID(self) -> str:
+        return self.id
 
     def setX(self, x: int) -> None:
         self.x = x
@@ -48,6 +52,11 @@ class BaseButton:
 
     def setText(self, text: str) -> None:
         self.text = text
+        self.id = text
+
+    def setID(self, id: str) -> None:
+        self.text = id
+        self.id = id
 
     def draw(self, screen: Surface):
         raise NotImplementedError("button draw() not implemented!")
@@ -62,10 +71,10 @@ class RectButton(BaseButton):
     def __init__(
         self,
         text: str,
-        x: int,
-        y: int,
         w: int,
         h: int,
+        x: int = 0,
+        y: int = 0,
         bgColor: Color = GREY,
     ) -> None:
         super().__init__(text, x, y, w, bgColor)
@@ -74,6 +83,14 @@ class RectButton(BaseButton):
 
     def setH(self, h: int) -> None:
         self.h = h
+
+    def setX(self, x: int) -> None:
+        self.x = x
+        self.rect.x = x
+
+    def setY(self, y: int) -> None:
+        self.y = y
+        self.rect.y = y
 
     def draw(self, surface: Surface) -> None:
         draw.rect(surface, self.bgColor, self.rect)
@@ -128,9 +145,8 @@ class CircleButton(BaseButton):
             textLen = len(self.text)
             textImg = self.font.render(self.text, True, BLACK)
             fontSize = self.font.size(self.text)
-            print(fontSize)
-            textX = self.x - (fontSize[0] / 2)
-            textY = self.y - (fontSize[1] / 2)
+            textX = self.x - int(fontSize[0] / 2)
+            textY = self.y - int(fontSize[1] / 2) + 1
             surface.blit(textImg, (textX, textY))
 
     def clicked(self, mouseX: int, mouseY: int) -> bool:

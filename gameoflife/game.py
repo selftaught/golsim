@@ -3,10 +3,9 @@ import pygame
 
 from pygame.font import Font
 from pygame.locals import KEYDOWN, K_ESCAPE, MOUSEBUTTONUP, K_g
-from gameoflife.colors import BLUE, BLACK
+from gameoflife.colors import BLUE, BLACK, GREY, GREY_LIGHT1
 from gameoflife.config import Config
 from gameoflife.grid import Grid
-from gameoflife.actions import Actions
 from gameoflife.button import RectButton
 from gameoflife.cell import *
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
@@ -15,6 +14,13 @@ from gameoflife.pattern import Pattern, PatternMenu, PatternType
 class State:
     displayPatternMenu: bool = False
 
+class ButtonID:
+    CLEAR = "Clear"
+    NEXT = "Next"
+    RESET = "Reset"
+    START = "Start"
+    STOP = "Stop"
+    PATTERNS = "Patterns"
 
 class Game:
     cfg: Config = None
@@ -56,33 +62,48 @@ class Game:
             ]
             for y in range(self.rows)
         ]
-        self.actions = Actions(0, self.height - 100, self.width, 100)
+        self.actionBarHeight = 100
+        self._clear = False
+        self._next = False
+        self._reset = False
+        self._stopped = True
         self.state = State()
         self.patternsMenu = PatternMenu(50, 50, 200)
         self.patternsMenu.setFont(self.font)
         self.patterns = []
+        self.loadPatterns()
+        self.initButtons()
 
+    def initButtons(self) -> None:
+        btnHeight = 30
         btnMargin = 30
         btnWidth = 100
-        btnHeight = 30
 
         patternsBtnX = 940
         patternsBtnY = 735
 
-        self.patternsBtn = RectButton(
-            "Patterns", patternsBtnX, patternsBtnY, btnWidth, btnHeight
-        )
-        self.patternsBtn.setFont(self.font)
-        self.loadPatterns()
+        self.buttons = [
+            RectButton(ButtonID.RESET, btnWidth, btnHeight),
+            RectButton(ButtonID.CLEAR, btnWidth, btnHeight),
+            RectButton(ButtonID.START, btnWidth, btnHeight),
+            RectButton(ButtonID.NEXT, btnWidth, btnHeight),
+            RectButton(ButtonID.PATTERNS, btnWidth, btnHeight),
+        ]
+
+        buttonX = 0
+        buttonY = self.height - self.actionBarHeight
+
+        for button in self.buttons:
+            button.setFont(self.font)
+            button.setX(buttonX)
+            button.setY(buttonY)
+            buttonX += btnWidth + btnMargin
+
 
     def eventLoop(self) -> None:
         for event in pygame.event.get():
-            self.actions.eventHandler(event)
             if self.patternsMenu.eventHandler(event):
                 return
-            if self.state.displayPatternMenu:
-                if self.patternsMenu.eventHandler(event):
-                    return
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == KEYDOWN:
@@ -92,10 +113,25 @@ class Game:
                     self.grid.toggle()
             elif event.type == MOUSEBUTTONUP:
                 (mouseX, mouseY) = pygame.mouse.get_pos()
-                if self.patternsBtn.clicked(mouseX, mouseY):
-                    self.patternsMenu.toggle()
-                    self.state.displayPatternMenu = self.patternsMenu.enabled()
-                elif mouseY < self.height - self.actions.getHeight():
+                for button in self.buttons:
+                    if button.clicked(mouseX, mouseY):
+                        bID = button.getID()
+                        if bID == ButtonID.CLEAR:
+                            self._clear = True
+                        elif bID == ButtonID.NEXT:
+                            self._next = True
+                        elif bID == ButtonID.START:
+                            self.start()
+                            button.setID(ButtonID.STOP)
+                        elif bID == ButtonID.STOP:
+                            self.stop()
+                            button.setID(ButtonID.START)
+                        elif bID == ButtonID.PATTERNS:
+                            self.patternsMenu.toggle()
+                        elif bID == ButtonID.RESET:
+                            self.reset()
+
+                if mouseY < self.height - self.actionBarHeight:
                     cellX = int(mouseX / self.cellWidth)
                     cellY = int(mouseY / self.cellHeight)
                     try:
@@ -117,14 +153,12 @@ class Game:
         pygame.quit()
 
     def update(self) -> None:
-        if self.actions.resetCells():
-            # TODO: instead of resetting to a random state - reset to the initial state?
+        if self.isReset():
             self.cells = [
                 [Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)]
                 for y in range(self.rows)
             ]
-        elif self.actions.clearCells():
-            self.actions.stop()
+        elif self.cleared():
             self.cells = [
                 [
                     Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD)
@@ -133,10 +167,12 @@ class Game:
                 for y in range(self.rows)
             ]
 
-        self.patternsBtn.update()
+        for button in self.buttons:
+            button.update()
+
         self.patternsMenu.update()
 
-        if not self.actions.isStopped() or self.actions.nextFrame():
+        if not self.stopped() or self.next():
             for y in range(len(self.cells)):
                 for x in range(len(self.cells[y])):
                     alive = cellAliveNeighborCount(
@@ -170,8 +206,8 @@ class Game:
                     if nextState == CellState.ALIVE:
                         allCellsDead = False
 
-            if allCellsDead:
-                self.actions.stop()
+            #if allCellsDead:
+            #    self.stop()
 
     def draw(self) -> None:
         self.screen.fill((255, 255, 255))
@@ -182,11 +218,52 @@ class Game:
                 cell = self.cells[y][x]
                 cell.draw(self.screen)
 
-        self.actions.draw(self.screen)
-        self.patternsBtn.draw(self.screen)
+        self.drawActionBar()
+        self.drawButtons()
         self.patternsMenu.draw(self.screen)
 
         pygame.display.update()
+
+    def drawActionBar(self) -> None:
+        x = 0
+        y = self.height - self.actionBarHeight
+        bg = pygame.Rect(x, y, self.width, self.actionBarHeight)
+        pygame.draw.rect(self.screen, GREY_LIGHT1, bg)
+        pygame.draw.line(self.screen, GREY, (x, y), (x + self.width, y))
+
+    def drawButtons(self) -> None:
+        for button in self.buttons:
+            button.draw(self.screen)
+
+    def clear(self) -> None:
+        self._clear = True
+
+    def cleared(self) -> bool:
+        val = self._clear
+        self._clear = False
+        return val
+
+    def next(self) -> bool:
+        val = self._next
+        self._next = False
+        return val
+
+    def reset(self) -> None:
+        self._reset = True
+
+    def isReset(self) -> bool:
+        val = self._reset
+        self._reset = False
+        return val
+
+    def start(self) -> None:
+        self._stopped = False
+
+    def stop(self) -> None:
+        self._stopped = True
+
+    def stopped(self) -> bool:
+        return self._stopped
 
     def loadPatterns(self) -> None:
         # still lifes

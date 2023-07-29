@@ -9,6 +9,7 @@ from gameoflife.colors import (
     GREY_LIGHT2,
     GREY,
     RED,
+    RED_LIGHT1,
     GREY_DARK1,
 )
 from gameoflife.helpers import drawRectBorder
@@ -119,7 +120,7 @@ class PatternMenuRow:
         self.w = w
         self.cursor = pygame.SYSTEM_CURSOR_ARROW
 
-    def update(self):
+    def update(self) -> None:
         if self.hovered():
             self.bgColor = self.hoveredBgColor
             self.cursor = pygame.SYSTEM_CURSOR_HAND
@@ -147,7 +148,7 @@ class PatternMenuRow:
             GREY_DARK1,
         )
 
-    def getHeight(self):
+    def getHeight(self) -> int:
         return self.h
 
     def hovered(self) -> bool:
@@ -167,7 +168,7 @@ class PatternMenu:
         self.font = None
         self.bgColor = GREY_LIGHT1
         self.padding = 12
-        self.closeBtn = CircleButton("X", self.x + self.w, self.y, 10, RED)
+        self.closeBtn = CircleButton("X", self.x + self.w, self.y, 10, RED_LIGHT1)
         self._enabled = False
         self.rows = []
 
@@ -204,13 +205,13 @@ class PatternMenu:
             self.rows.append(row)
             yOffset += row.getHeight() + self.padding
 
-    def getHeight(self):
+    def getHeight(self) -> int:
         height = self.padding
         for row in self.rows:
             height += row.getHeight() + self.padding
         return height
 
-    def update(self):
+    def update(self) -> None:
         if self._enabled:
             self.closeBtn.update()
             for row in self.rows:
@@ -230,7 +231,7 @@ class PatternMenu:
                     return True
         return False
 
-    def draw(self, screen: Surface):
+    def draw(self, screen: Surface) -> None:
         if self._enabled:
             height = self.getHeight()
             rect = Rect(self.x, self.y, self.w, height)
