@@ -117,9 +117,18 @@ class PatternMenuRow:
         self.x = x
         self.y = y
         self.w = w
+        self.cursor = pygame.SYSTEM_CURSOR_ARROW
 
     def update(self):
-        self.bgColor = self.hoveredBgColor if self.hovered() else self.inactiveBgColor
+        if self.hovered():
+            self.bgColor = self.hoveredBgColor
+            self.cursor = pygame.SYSTEM_CURSOR_HAND
+            pygame.mouse.set_cursor(self.cursor)
+        else:
+            if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
+                self.cursor = pygame.SYSTEM_CURSOR_ARROW
+                pygame.mouse.set_cursor(self.cursor)
+            self.bgColor = self.inactiveBgColor
         self.pattern.setBgColor(self.bgColor)
 
     def draw(self, screen: Surface) -> None:
@@ -158,7 +167,7 @@ class PatternMenu:
         self.font = None
         self.bgColor = GREY_LIGHT1
         self.padding = 12
-        self.closeBtn = CircleButton("X", self.font, self.x + self.w, self.y, 10, RED)
+        self.closeBtn = CircleButton("X", self.x + self.w, self.y, 10, RED)
         self._enabled = False
         self.rows = []
 
@@ -202,14 +211,17 @@ class PatternMenu:
         return height
 
     def update(self):
-        for row in self.rows:
-            row.update()
+        if self._enabled:
+            self.closeBtn.update()
+            for row in self.rows:
+                row.update()
 
     def eventHandler(self, event) -> bool:
         if self._enabled:
             if event.type == MOUSEBUTTONUP:
                 (mX, mY) = pygame.mouse.get_pos()
                 if self.closeBtn.clicked(mX, mY):
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                     self._enabled = False
                     return True
                 elif (mX >= self.x and mX <= self.x + self.w) and (
@@ -219,14 +231,15 @@ class PatternMenu:
         return False
 
     def draw(self, screen: Surface):
-        height = self.getHeight()
-        rect = Rect(self.x, self.y, self.w, height)
-        yOffset = self.padding
+        if self._enabled:
+            height = self.getHeight()
+            rect = Rect(self.x, self.y, self.w, height)
+            yOffset = self.padding
 
-        draw.rect(screen, self.bgColor, rect)
-        drawRectBorder(screen, self.x, self.y, self.w, height)
+            draw.rect(screen, self.bgColor, rect)
+            drawRectBorder(screen, self.x, self.y, self.w, height)
 
-        for row in self.rows:
-            row.draw(screen)
+            for row in self.rows:
+                row.draw(screen)
 
-        self.closeBtn.draw(screen)
+            self.closeBtn.draw(screen)

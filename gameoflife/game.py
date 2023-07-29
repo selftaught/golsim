@@ -1,6 +1,7 @@
 import glob
 import pygame
 
+from pygame.font import Font
 from pygame.locals import KEYDOWN, K_ESCAPE, MOUSEBUTTONUP, K_g
 from gameoflife.colors import BLUE, BLACK
 from gameoflife.config import Config
@@ -38,7 +39,7 @@ class Game:
 
         self.buttons = []
         self.cfg = Config()
-        self.font = pygame.font.Font(None, 30)
+        self.font = Font(None, 24)
         self.height = self.cfg.get("screen.height")
         self.width = self.cfg.get("screen.width")
         self.screen = pygame.display.set_mode([self.width, self.height])
@@ -58,6 +59,7 @@ class Game:
         self.actions = Actions(0, self.height - 100, self.width, 100)
         self.state = State()
         self.patternsMenu = PatternMenu(50, 50, 200)
+        self.patternsMenu.setFont(self.font)
         self.patterns = []
 
         btnMargin = 30
@@ -68,12 +70,10 @@ class Game:
         patternsBtnY = 735
 
         self.patternsBtn = RectButton(
-            "Patterns", self.font, patternsBtnX, patternsBtnY, btnWidth, btnHeight
+            "Patterns", patternsBtnX, patternsBtnY, btnWidth, btnHeight
         )
+        self.patternsBtn.setFont(self.font)
         self.loadPatterns()
-
-    def isRunning(self) -> bool:
-        return self.running
 
     def eventLoop(self) -> None:
         for event in pygame.event.get():
@@ -109,7 +109,7 @@ class Game:
                         print(e)
 
     def loop(self) -> None:
-        while self.isRunning():
+        while self.running:
             self.eventLoop()
             self.update()
             self.draw()
@@ -133,8 +133,8 @@ class Game:
                 for y in range(self.rows)
             ]
 
-        if self.state.displayPatternMenu:
-            self.patternsMenu.update()
+        self.patternsBtn.update()
+        self.patternsMenu.update()
 
         if not self.actions.isStopped() or self.actions.nextFrame():
             for y in range(len(self.cells)):
@@ -184,9 +184,7 @@ class Game:
 
         self.actions.draw(self.screen)
         self.patternsBtn.draw(self.screen)
-
-        if self.patternsMenu.enabled():
-            self.patternsMenu.draw(self.screen)
+        self.patternsMenu.draw(self.screen)
 
         pygame.display.update()
 

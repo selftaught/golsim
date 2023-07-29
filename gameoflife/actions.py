@@ -21,36 +21,41 @@ class Actions:
         startStopBtnX = (x + width / 2) - (btnWidth / 2)
         startStopBtnY = (y + height / 2) - (btnHeight / 2)
         self.startStopBtn = RectButton(
-            "Start", self.font, startStopBtnX, startStopBtnY, 100, 30
+            "Start", startStopBtnX, startStopBtnY, 100, 30
         )
+        self.startStopBtn.setFont(self.font)
         self.stopped = True
 
         resetBtnX = startStopBtnX - btnWidth - btnMargin
         resetBtnY = startStopBtnY
         self.resetBtn = RectButton(
-            "Reset", self.font, resetBtnX, resetBtnY, btnWidth, btnHeight
+            "Reset", resetBtnX, resetBtnY, btnWidth, btnHeight
         )
+        self.resetBtn.setFont(self.font)
         self.reset = False
 
         recordBtnX = resetBtnX - btnWidth - btnMargin
         recordBtnY = startStopBtnY
         self.recordBtn = RectButton(
-            "Record", self.font, recordBtnX, recordBtnY, btnWidth, btnHeight
+            "Record", recordBtnX, recordBtnY, btnWidth, btnHeight
         )
+        self.recordBtn.setFont(self.font)
         self.record = False
 
         nextBtnX = startStopBtnX + btnWidth + btnMargin
         nextBtnY = startStopBtnY
         self.nextBtn = RectButton(
-            "Next", self.font, nextBtnX, nextBtnY, btnWidth, btnHeight
+            "Next", nextBtnX, nextBtnY, btnWidth, btnHeight
         )
+        self.nextBtn.setFont(self.font)
         self.next = False
 
         clearBtnX = nextBtnX + btnWidth + btnMargin
         clearBtnY = startStopBtnY
         self.clearBtn = RectButton(
-            "Clear", self.font, clearBtnX, clearBtnY, btnWidth, btnHeight
+            "Clear", clearBtnX, clearBtnY, btnWidth, btnHeight
         )
+        self.clearBtn.setFont(self.font)
         self.clear = False
 
     def eventHandler(self, event: pygame.event) -> pygame.event:
