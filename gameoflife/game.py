@@ -6,22 +6,27 @@ from gameoflife.colors import BLUE, BLACK
 from gameoflife.config import Config
 from gameoflife.grid import Grid
 from gameoflife.actions import Actions
+from gameoflife.button import RectButton
 from gameoflife.cell import *
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
 
+class State:
+    displayPatternMenu: bool = False
+
+
 class Game:
-    cfg:Config = None
-    running:bool = True
-    height:int
-    width:int
-    cellHeight:int = None
-    cellWidth:int = None
-    cells:list = []
-    cols:int = None
-    rows:int = None
-    clock:pygame.time.Clock = None
-    screen:pygame.Surface = None
+    cfg: Config = None
+    running: bool = True
+    height: int
+    width: int
+    cellHeight: int = None
+    cellWidth: int = None
+    cells: list = []
+    cols: int = None
+    rows: int = None
+    clock: pygame.time.Clock = None
+    screen: pygame.Surface = None
 
     def __init__(self) -> None:
         pygame.init()
@@ -31,20 +36,40 @@ class Game:
         if iconImg:
             pygame.display.set_icon(iconImg)
 
+        self.buttons = []
         self.cfg = Config()
-        self.height = self.cfg.get('screen.height')
-        self.width = self.cfg.get('screen.width')
+        self.font = pygame.font.Font(None, 30)
+        self.height = self.cfg.get("screen.height")
+        self.width = self.cfg.get("screen.width")
         self.screen = pygame.display.set_mode([self.width, self.height])
-        self.cellHeight = self.cfg.get('cell.height', default=5)
-        self.cellWidth = self.cfg.get('cell.width', default=5)
+        self.cellHeight = self.cfg.get("cell.height", default=5)
+        self.cellWidth = self.cfg.get("cell.width", default=5)
         self.rows = int((self.height - 100) / self.cellHeight)
         self.cols = int(self.width / self.cellWidth)
         self.clock = pygame.time.Clock()
         self.grid = Grid(self.cols, self.rows, self.cellWidth, self.cellHeight)
-        self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD) for x in range(self.cols)] for y in range(self.rows)]
+        self.cells = [
+            [
+                Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD)
+                for x in range(self.cols)
+            ]
+            for y in range(self.rows)
+        ]
         self.actions = Actions(0, self.height - 100, self.width, 100)
-        self.patterns = []
+        self.state = State()
         self.patternsMenu = PatternMenu(50, 50, 200)
+        self.patterns = []
+
+        btnMargin = 30
+        btnWidth = 100
+        btnHeight = 30
+
+        patternsBtnX = 940
+        patternsBtnY = 735
+
+        self.patternsBtn = RectButton(
+            "Patterns", self.font, patternsBtnX, patternsBtnY, btnWidth, btnHeight
+        )
         self.loadPatterns()
 
     def isRunning(self) -> bool:
@@ -53,24 +78,33 @@ class Game:
     def eventLoop(self) -> None:
         for event in pygame.event.get():
             self.actions.eventHandler(event)
-            if self.actions.showPatternsMenu():
-                self.patternsMenu.eventHandler(event)
-
+            if self.patternsMenu.eventHandler(event):
+                return
+            if self.state.displayPatternMenu:
+                if self.patternsMenu.eventHandler(event):
+                    return
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == KEYDOWN:
-                if event.key == K_ESCAPE :
+                if event.key == K_ESCAPE:
                     self.running = False
                 if event.key == K_g:
                     self.grid.toggle()
             elif event.type == MOUSEBUTTONUP:
                 (mouseX, mouseY) = pygame.mouse.get_pos()
-                if mouseY < self.height - self.actions.getHeight():
+                if self.patternsBtn.clicked(mouseX, mouseY):
+                    self.patternsMenu.toggle()
+                    self.state.displayPatternMenu = self.patternsMenu.enabled()
+                elif mouseY < self.height - self.actions.getHeight():
                     cellX = int(mouseX / self.cellWidth)
                     cellY = int(mouseY / self.cellHeight)
                     try:
                         cell = self.cells[cellY][cellX]
-                        cell.setState(CellState.DEAD if cell.getState() == CellState.ALIVE else CellState.ALIVE)
+                        cell.setState(
+                            CellState.DEAD
+                            if cell.getState() == CellState.ALIVE
+                            else CellState.ALIVE
+                        )
                     except Exception as e:
                         print(e)
 
@@ -79,21 +113,35 @@ class Game:
             self.eventLoop()
             self.update()
             self.draw()
-            self.clock.tick(self.cfg.get('fps', default=5))
+            self.clock.tick(self.cfg.get("fps", default=5))
         pygame.quit()
 
     def update(self) -> None:
         if self.actions.resetCells():
             # TODO: instead of resetting to a random state - reset to the initial state?
-            self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)] for y in range(self.rows)]
+            self.cells = [
+                [Cell(x, y, self.cellWidth, self.cellHeight) for x in range(self.cols)]
+                for y in range(self.rows)
+            ]
         elif self.actions.clearCells():
             self.actions.stop()
-            self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD) for x in range(self.cols)] for y in range(self.rows)]
+            self.cells = [
+                [
+                    Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD)
+                    for x in range(self.cols)
+                ]
+                for y in range(self.rows)
+            ]
+
+        if self.state.displayPatternMenu:
+            self.patternsMenu.update()
 
         if not self.actions.isStopped() or self.actions.nextFrame():
             for y in range(len(self.cells)):
                 for x in range(len(self.cells[y])):
-                    alive = cellAliveNeighborCount(x, y, self.cols, self.rows, self.cells)
+                    alive = cellAliveNeighborCount(
+                        x, y, self.cols, self.rows, self.cells
+                    )
                     cell = self.cells[y][x]
 
                     # 1. Alive cells with < 2 alive neighbors die (under-population).
@@ -135,26 +183,30 @@ class Game:
                 cell.draw(self.screen)
 
         self.actions.draw(self.screen)
+        self.patternsBtn.draw(self.screen)
 
-        if self.actions.showPatternsMenu():
+        if self.patternsMenu.enabled():
             self.patternsMenu.draw(self.screen)
 
         pygame.display.update()
 
     def loadPatterns(self) -> None:
         # still lifes
-        for patternFilePath in sorted(glob.glob('patterns/still-lifes/*')):
-            patternName = patternFilePath.split('/')[-1]
-            self.patterns.append(Pattern(patternName, patternFilePath, PatternType.StillLife))
+        for path in sorted(glob.glob("patterns/still-lifes/*")):
+            pattern = Pattern(path.split("/")[-1], path, PatternType.StillLife)
+            if pattern.getRows():
+                self.patterns.append(pattern)
 
         # oscillators
-        #for patternFilePath in glob.glob('patterns/oscillators/*'):
-        #    patternName = patternFilePath.split('/')[-1]
-        #    self.patterns.append(Pattern(patternName, patternFilePath, PatternType.Oscillator))
+        for path in glob.glob("patterns/oscillators/*"):
+            pattern = Pattern(path.split("/")[-1], path, PatternType.Oscillator)
+            if pattern.getRows():
+                self.patterns.append(pattern)
 
         # spaceships
-        #for patternFilePath in glob.glob('patterns/spaceships/*'):
-        #    patternName = patternFilePath.split('/')[-1]
-        #    self.patterns.append(Pattern(patternName, patternFilePath, PatternType.Spacehship))
+        for path in glob.glob("patterns/spaceships/*"):
+            pattern = Pattern(path.split("/")[-1], path, PatternType.Spacehship)
+            if pattern.getRows():
+                self.patterns.append(pattern)
 
         self.patternsMenu.setPatterns(self.patterns)

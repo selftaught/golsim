@@ -6,9 +6,8 @@ from gameoflife.button import RectButton
 from gameoflife.colors import BLACK, GREY_LIGHT1, GREY
 
 
-
 class Actions:
-    def __init__(self, x:int, y:int, width:int, height:int) -> None:
+    def __init__(self, x: int, y: int, width: int, height: int) -> None:
         self.x = x
         self.y = y
         self.width = width
@@ -21,35 +20,40 @@ class Actions:
 
         startStopBtnX = (x + width / 2) - (btnWidth / 2)
         startStopBtnY = (y + height / 2) - (btnHeight / 2)
-        self.startStopBtn = RectButton("Start", self.font, startStopBtnX, startStopBtnY, 100, 30)
+        self.startStopBtn = RectButton(
+            "Start", self.font, startStopBtnX, startStopBtnY, 100, 30
+        )
         self.stopped = True
 
         resetBtnX = startStopBtnX - btnWidth - btnMargin
         resetBtnY = startStopBtnY
-        self.resetBtn = RectButton("Reset", self.font, resetBtnX, resetBtnY, btnWidth, btnHeight)
+        self.resetBtn = RectButton(
+            "Reset", self.font, resetBtnX, resetBtnY, btnWidth, btnHeight
+        )
         self.reset = False
 
         recordBtnX = resetBtnX - btnWidth - btnMargin
         recordBtnY = startStopBtnY
-        self.recordBtn = RectButton("Record", self.font, recordBtnX, recordBtnY, btnWidth, btnHeight)
+        self.recordBtn = RectButton(
+            "Record", self.font, recordBtnX, recordBtnY, btnWidth, btnHeight
+        )
         self.record = False
 
         nextBtnX = startStopBtnX + btnWidth + btnMargin
         nextBtnY = startStopBtnY
-        self.nextBtn = RectButton("Next", self.font, nextBtnX, nextBtnY, btnWidth, btnHeight)
+        self.nextBtn = RectButton(
+            "Next", self.font, nextBtnX, nextBtnY, btnWidth, btnHeight
+        )
         self.next = False
 
         clearBtnX = nextBtnX + btnWidth + btnMargin
         clearBtnY = startStopBtnY
-        self.clearBtn = RectButton("Clear", self.font, clearBtnX, clearBtnY, btnWidth, btnHeight)
+        self.clearBtn = RectButton(
+            "Clear", self.font, clearBtnX, clearBtnY, btnWidth, btnHeight
+        )
         self.clear = False
 
-        patternsBtnX = clearBtnX + btnWidth + btnMargin
-        patternsBtnY = startStopBtnY
-        self.patternsBtn = RectButton("Patterns", self.font, patternsBtnX, patternsBtnY, btnWidth, btnHeight)
-        self.patternsMenu = False
-
-    def eventHandler(self, event:pygame.event) -> None:
+    def eventHandler(self, event: pygame.event) -> pygame.event:
         if event.type == MOUSEBUTTONUP:
             (mX, mY) = pygame.mouse.get_pos()
             if self.startStopBtn.clicked(mX, mY):
@@ -61,8 +65,6 @@ class Actions:
                 self.next = True
             elif self.clearBtn.clicked(mX, mY):
                 self.clear = True
-            elif self.patternsBtn.clicked(mX, mY):
-                self.patternsMenu = not self.patternsMenu
 
     def getHeight(self) -> int:
         return self.height
@@ -89,10 +91,7 @@ class Actions:
         self.next = False
         return next
 
-    def showPatternsMenu(self) -> bool:
-        return self.patternsMenu
-
-    def draw(self, screen:Surface) -> None:
+    def draw(self, screen: Surface) -> None:
         bg = Rect(self.x, self.y, self.width, self.height)
 
         pygame.draw.rect(screen, GREY_LIGHT1, bg)
@@ -103,7 +102,6 @@ class Actions:
         self.nextBtn.draw(screen)
         self.clearBtn.draw(screen)
         self.recordBtn.draw(screen)
-        self.patternsBtn.draw(screen)
 
         # TODO:
         #   - speed / fps dial
