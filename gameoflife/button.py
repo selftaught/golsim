@@ -21,7 +21,11 @@ class BaseButton:
         self.x = x
         self.y = y
         self.w = w
+        self.currBgColor = bgColor
         self.bgColor = bgColor
+        self.textColor = None
+        self.hoverBgColor = None
+        self.hoverTextColor = None
         self.border = True
         self.borderColor = BLACK
         self.cursor = pygame.SYSTEM_CURSOR_ARROW
@@ -41,8 +45,11 @@ class BaseButton:
     def setFont(self, font: Font) -> None:
         self.font = font
 
-    def setBackgroundColor(self, bgColor: tuple) -> None:
+    def setBackgroundColor(self, bgColor: Color) -> None:
         self.bgColor = bgColor
+
+    def setHoverBackgroundColor(self, bgColor: Color) -> None:
+        self.hoverBgColor = bgColor
 
     def setBorder(self, border: bool) -> None:
         self.border = border
@@ -138,7 +145,7 @@ class CircleButton(BaseButton):
         self.radius = radius
 
     def draw(self, surface: Surface) -> None:
-        draw.circle(surface, self.bgColor, (self.x, self.y), self.radius, self.w)
+        draw.circle(surface, self.currBgColor, (self.x, self.y), self.radius, self.w)
         if self.border:
             draw.circle(surface, self.borderColor, (self.x, self.y), self.radius, 1)
         if self.text:
@@ -163,7 +170,10 @@ class CircleButton(BaseButton):
         if math.sqrt(sqMouseX + sqMouseY) < self.radius:
             self.cursor = pygame.SYSTEM_CURSOR_HAND
             pygame.mouse.set_cursor(self.cursor)
+            self.currBgColor = self.hoverBgColor
         else:
             if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
                 self.cursor = pygame.SYSTEM_CURSOR_ARROW
                 pygame.mouse.set_cursor(self.cursor)
+            if self.currBgColor != self.bgColor:
+                self.currBgColor = self.bgColor

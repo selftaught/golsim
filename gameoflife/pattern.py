@@ -172,6 +172,8 @@ class PatternMenu:
         self._enabled = False
         self.rows = []
 
+        self.closeBtn.setHoverBackgroundColor(RED)
+
     def enable(self) -> None:
         self._enabled = True
 

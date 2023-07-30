@@ -2,7 +2,7 @@ import glob
 import pygame
 
 from pygame.font import Font
-from pygame.locals import KEYDOWN, K_ESCAPE, MOUSEBUTTONUP, K_g
+from pygame.locals import KEYDOWN, MOUSEBUTTONUP, K_g
 from gameoflife.colors import BLUE, BLACK, GREY, GREY_LIGHT1
 from gameoflife.config import Config
 from gameoflife.grid import Grid
@@ -11,11 +11,9 @@ from gameoflife.cell import *
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
 
-class State:
-    displayPatternMenu: bool = False
-
 class ButtonID:
     CLEAR = "Clear"
+    EXIT = "Exit"
     NEXT = "Next"
     RESET = "Reset"
     START = "Start"
@@ -67,7 +65,6 @@ class Game:
         self._next = False
         self._reset = False
         self._stopped = True
-        self.state = State()
         self.patternsMenu = PatternMenu(50, 50, 200)
         self.patternsMenu.setFont(self.font)
         self.patterns = []
@@ -79,19 +76,20 @@ class Game:
         btnMargin = 30
         btnWidth = 100
 
-        patternsBtnX = 940
-        patternsBtnY = 735
-
         self.buttons = [
             RectButton(ButtonID.RESET, btnWidth, btnHeight),
             RectButton(ButtonID.CLEAR, btnWidth, btnHeight),
             RectButton(ButtonID.START, btnWidth, btnHeight),
             RectButton(ButtonID.NEXT, btnWidth, btnHeight),
             RectButton(ButtonID.PATTERNS, btnWidth, btnHeight),
+            RectButton(ButtonID.EXIT, btnWidth, btnHeight),
         ]
 
-        buttonX = 0
-        buttonY = self.height - self.actionBarHeight
+        btnCount = len(self.buttons)
+        buttonsTotalWidth = (btnCount * (btnWidth + btnMargin)) - btnMargin
+        remainingScreenSpace = self.width - buttonsTotalWidth
+        buttonX = remainingScreenSpace / 2
+        buttonY = (self.height - self.actionBarHeight) + ((self.actionBarHeight / 2) - btnHeight / 2)
 
         for button in self.buttons:
             button.setFont(self.font)
@@ -107,8 +105,8 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
-                    self.running = False
+                #if event.key == K_ESCAPE:
+                #    self.running = False
                 if event.key == K_g:
                     self.grid.toggle()
             elif event.type == MOUSEBUTTONUP:
@@ -130,6 +128,8 @@ class Game:
                             self.patternsMenu.toggle()
                         elif bID == ButtonID.RESET:
                             self.reset()
+                        elif bID == ButtonID.EXIT:
+                            self.running = False
 
                 if mouseY < self.height - self.actionBarHeight:
                     cellX = int(mouseX / self.cellWidth)
@@ -211,13 +211,13 @@ class Game:
 
     def draw(self) -> None:
         self.screen.fill((255, 255, 255))
-        self.grid.draw(self.screen)
 
         for y in range(len(self.cells)):
             for x in range(len(self.cells[y])):
                 cell = self.cells[y][x]
                 cell.draw(self.screen)
 
+        self.grid.draw(self.screen)
         self.drawActionBar()
         self.drawButtons()
         self.patternsMenu.draw(self.screen)
