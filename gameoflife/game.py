@@ -145,10 +145,8 @@ class Game:
                         if self.selectedPattern:
                             selectedCells = self.selectedPattern.getCells()
                             for y in range(len(selectedCells)):
-                                r = ''
                                 for x in range(len(selectedCells[y])):
                                     self.cells[cellY + y][cellX + x].setState(selectedCells[y][x].getState())
-                                print(r)
                         else:
                             cell = self.cells[cellY][cellX]
                             cell.setState(
@@ -285,21 +283,23 @@ class Game:
         return self._stopped
 
     def loadPatterns(self) -> None:
-        # still lifes
         for path in sorted(glob.glob("patterns/still-lifes/*")):
             pattern = Pattern(path.split("/")[-1], path, PatternType.StillLife)
             if pattern.getRows():
                 self.patterns.append(pattern)
 
-        # oscillators
         for path in glob.glob("patterns/oscillators/*"):
             pattern = Pattern(path.split("/")[-1], path, PatternType.Oscillator)
             if pattern.getRows():
                 self.patterns.append(pattern)
 
-        # spaceships
         for path in glob.glob("patterns/spaceships/*"):
             pattern = Pattern(path.split("/")[-1], path, PatternType.Spacehship)
+            if pattern.getRows():
+                self.patterns.append(pattern)
+
+        for path in glob.glob("patterns/flipflops/*"):
+            pattern = Pattern(path.split("/")[-1], path, PatternType.FlipFlop)
             if pattern.getRows():
                 self.patterns.append(pattern)
 

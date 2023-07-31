@@ -23,6 +23,7 @@ class PatternType:
     StillLife: int = 1
     Oscillator: int = 2
     Spacehship: int = 3
+    FlipFlop: int = 4
 
 
 class Pattern:
