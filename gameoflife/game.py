@@ -2,7 +2,7 @@ import glob
 import pygame
 
 from pygame.font import Font
-from pygame.locals import KEYDOWN, MOUSEBUTTONUP, K_g
+from pygame.locals import KEYDOWN, MOUSEBUTTONUP, K_g, K_ESCAPE
 from gameoflife.colors import BLUE, BLACK, GREY, GREY_LIGHT1
 from gameoflife.config import Config
 from gameoflife.grid import Grid
@@ -68,6 +68,8 @@ class Game:
         self.patternsMenu = PatternMenu(50, 50, 200)
         self.patternsMenu.setFont(self.font)
         self.patterns = []
+        self.selectedPattern = None
+
         self.loadPatterns()
         self.initButtons()
 
@@ -100,19 +102,24 @@ class Game:
 
     def eventLoop(self) -> None:
         for event in pygame.event.get():
-            if self.patternsMenu.eventHandler(event):
+            handlerResp = self.patternsMenu.eventHandler(event)
+            if handlerResp:
+                if isinstance(handlerResp, Pattern):
+                    self.selectedPattern = handlerResp
+                    self.selectedPattern.setCellHeight(self.cellHeight)
+                    self.selectedPattern.setCellWidth(self.cellWidth)
                 return
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == KEYDOWN:
-                #if event.key == K_ESCAPE:
-                #    self.running = False
+                if event.key == K_ESCAPE:
+                    self.selectedPattern = None
                 if event.key == K_g:
                     self.grid.toggle()
             elif event.type == MOUSEBUTTONUP:
-                (mouseX, mouseY) = pygame.mouse.get_pos()
+                (mX, mY) = pygame.mouse.get_pos()
                 for button in self.buttons:
-                    if button.clicked(mouseX, mouseY):
+                    if button.clicked(mX, mY):
                         bID = button.getID()
                         if bID == ButtonID.CLEAR:
                             self._clear = True
@@ -131,16 +138,24 @@ class Game:
                         elif bID == ButtonID.EXIT:
                             self.running = False
 
-                if mouseY < self.height - self.actionBarHeight:
-                    cellX = int(mouseX / self.cellWidth)
-                    cellY = int(mouseY / self.cellHeight)
+                if mY < self.height - self.actionBarHeight:
+                    cellX = int(mX / self.cellWidth)
+                    cellY = int(mY / self.cellHeight)
                     try:
-                        cell = self.cells[cellY][cellX]
-                        cell.setState(
-                            CellState.DEAD
-                            if cell.getState() == CellState.ALIVE
-                            else CellState.ALIVE
-                        )
+                        if self.selectedPattern:
+                            selectedCells = self.selectedPattern.getCells()
+                            for y in range(len(selectedCells)):
+                                r = ''
+                                for x in range(len(selectedCells[y])):
+                                    self.cells[cellY + y][cellX + x].setState(selectedCells[y][x].getState())
+                                print(r)
+                        else:
+                            cell = self.cells[cellY][cellX]
+                            cell.setState(
+                                CellState.DEAD
+                                if cell.getState() == CellState.ALIVE
+                                else CellState.ALIVE
+                            )
                     except Exception as e:
                         print(e)
 
@@ -206,8 +221,8 @@ class Game:
                     if nextState == CellState.ALIVE:
                         allCellsDead = False
 
-            #if allCellsDead:
-            #    self.stop()
+            if allCellsDead:
+                self.stop()
 
     def draw(self) -> None:
         self.screen.fill((255, 255, 255))
@@ -221,6 +236,10 @@ class Game:
         self.drawActionBar()
         self.drawButtons()
         self.patternsMenu.draw(self.screen)
+
+        if self.selectedPattern:
+            patternSurf = self.selectedPattern.getSurface()
+            self.screen.blit(patternSurf, pygame.mouse.get_pos())
 
         pygame.display.update()
 

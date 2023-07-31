@@ -59,6 +59,9 @@ class Pattern:
                 y += 1
             self.cols = self.rowMaxLen
 
+    def getCells(self) -> List[List]:
+        return self.cells
+
     def getRows(self) -> int:
         return self.rows
 
@@ -151,11 +154,19 @@ class PatternMenuRow:
     def getHeight(self) -> int:
         return self.h
 
+    def getPattern(self) -> Pattern:
+        return self.pattern
+
     def hovered(self) -> bool:
         (mX, mY) = pygame.mouse.get_pos()
         if (mX >= self.x and mX <= self.x + self.w) and (
             mY >= self.y and mY <= self.y + self.h
         ):
+            return True
+        return False
+
+    def clicked(self, event) -> bool:
+        if event.type == MOUSEBUTTONUP and self.hovered():
             return True
         return False
 
@@ -227,7 +238,11 @@ class PatternMenu:
                     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                     self._enabled = False
                     return True
-                elif (mX >= self.x and mX <= self.x + self.w) and (
+                else:
+                    for row in self.rows:
+                        if row.clicked(event):
+                            return row.getPattern()
+                if (mX >= self.x and mX <= self.x + self.w) and (
                     mY >= self.y and mY <= self.y + self.getHeight()
                 ):
                     return True
