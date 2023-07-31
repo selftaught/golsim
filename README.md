@@ -17,12 +17,3 @@ python3 -m venv venv && \
 ## Run the game
 
 `python3 game.py`
-
-# TODO
-
-- [ ] Start splash screen
-- [ ] Interactive features such as play, stop, next controlls
-- [ ] Patterns to select and start with
-- [ ] Adjustable frame rate
-- [ ] Adjustable cell dimensions
-- [ ] Adjustable screen size
