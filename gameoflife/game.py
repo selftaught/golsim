@@ -283,10 +283,10 @@ class Game:
         return self._stopped
 
     def loadPatterns(self) -> None:
-        for path in sorted(glob.glob("patterns/still-lifes/*")):
-            pattern = Pattern(path.split("/")[-1], path, PatternType.StillLife)
-            if pattern.getRows():
-                self.patterns.append(pattern)
+        #for path in sorted(glob.glob("patterns/still-lifes/*")):
+        #    pattern = Pattern(path.split("/")[-1], path, PatternType.StillLife)
+        #    if pattern.getRows():
+        #        self.patterns.append(pattern)
 
         for path in glob.glob("patterns/oscillators/*"):
             pattern = Pattern(path.split("/")[-1], path, PatternType.Oscillator)
