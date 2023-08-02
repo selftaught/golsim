@@ -3,7 +3,7 @@ import pygame
 
 from pygame.font import Font
 from pygame.locals import KEYDOWN, MOUSEBUTTONUP, K_g, K_ESCAPE
-from gameoflife.colors import BLUE, BLACK, GREY, GREY_LIGHT1
+from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1
 from gameoflife.config import Config
 from gameoflife.grid import Grid
 from gameoflife.button import RectButton
@@ -19,6 +19,10 @@ class ButtonID:
     START = "Start"
     STOP = "Stop"
     PATTERNS = "Patterns"
+
+MOUSEBUTTONUP_LCLICK = 1
+MOUSEBUTTONUP_SCROLL_UP = 4
+MOUSEBUTTONUP_SCROLL_DOWN = 5
 
 class Game:
     cfg: Config = None
@@ -49,33 +53,32 @@ class Game:
         self.screen = pygame.display.set_mode([self.width, self.height])
         self.cellHeight = self.cfg.get("cell.height", default=5)
         self.cellWidth = self.cfg.get("cell.width", default=5)
-        self.rows = int((self.height - 100) / self.cellHeight)
+        self.actionBarHeight = 70
+        self.rows = int((self.height - self.actionBarHeight) / self.cellHeight)
         self.cols = int(self.width / self.cellWidth)
         self.clock = pygame.time.Clock()
         self.grid = Grid(self.cols, self.rows, self.cellWidth, self.cellHeight)
-        self.cells = [
-            [
-                Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD)
-                for x in range(self.cols)
-            ]
-            for y in range(self.rows)
-        ]
-        self.actionBarHeight = 100
+        self.cells = [[Cell(x, y, self.cellWidth, self.cellHeight, CellState.DEAD) for x in range(self.cols)] for y in range(self.rows)]
         self._clear = False
         self._next = False
         self._reset = False
         self._stopped = True
-        self.patternsMenu = PatternMenu(50, 50, 200)
+        self.patternsMenu = PatternMenu(50, 50)
         self.patternsMenu.setFont(self.font)
         self.patterns = []
         self.selectedPattern = None
+
+        # Zoom
+        #self.zoom = 0
+        #self.zoomMax = None
+        #self.zoomMin = None
 
         self.loadPatterns()
         self.initButtons()
 
     def initButtons(self) -> None:
         btnHeight = 30
-        btnMargin = 30
+        btnMargin = 15
         btnWidth = 100
 
         self.buttons = [
@@ -95,6 +98,7 @@ class Game:
 
         for button in self.buttons:
             button.setFont(self.font)
+            button.setHoverBackgroundColor(GREY_DARK2)
             button.setX(buttonX)
             button.setY(buttonY)
             buttonX += btnWidth + btnMargin
@@ -116,7 +120,7 @@ class Game:
                     self.selectedPattern = None
                 if event.key == K_g:
                     self.grid.toggle()
-            elif event.type == MOUSEBUTTONUP:
+            elif event.type == MOUSEBUTTONUP and event.dict.get('button') == MOUSEBUTTONUP_LCLICK:
                 (mX, mY) = pygame.mouse.get_pos()
                 for button in self.buttons:
                     if button.clicked(mX, mY):
@@ -146,7 +150,10 @@ class Game:
                             selectedCells = self.selectedPattern.getCells()
                             for y in range(len(selectedCells)):
                                 for x in range(len(selectedCells[y])):
-                                    self.cells[cellY + y][cellX + x].setState(selectedCells[y][x].getState())
+                                    nextCellX = cellX + x
+                                    nextCellY = cellY + y
+                                    if nextCellX < self.cols and nextCellY < self.rows:
+                                        self.cells[nextCellY][nextCellX].setState(selectedCells[y][x].getState())
                         else:
                             cell = self.cells[cellY][cellX]
                             cell.setState(
@@ -156,6 +163,10 @@ class Game:
                             )
                     except Exception as e:
                         print(e)
+            elif event.type == MOUSEBUTTONUP:
+                buttonCode = event.dict.get('button')
+                if buttonCode in [MOUSEBUTTONUP_SCROLL_DOWN, MOUSEBUTTONUP_SCROLL_UP]:
+                    pass # TODO: zoom
 
     def loop(self) -> None:
         while self.running:
@@ -211,6 +222,10 @@ class Game:
                             cell.setNextState(CellState.DEAD)
 
             allCellsDead = True
+            cellsDead = 0
+            cellsAlive = 0
+            cellsBirth = 0
+
             for y in range(len(self.cells)):
                 for x in range(len(self.cells[y])):
                     cell = self.cells[y][x]
@@ -235,7 +250,7 @@ class Game:
         self.drawButtons()
         self.patternsMenu.draw(self.screen)
 
-        if self.selectedPattern:
+        if self.selectedPattern and pygame.mouse.get_pos()[1] < self.height - self.actionBarHeight:
             patternSurf = self.selectedPattern.getSurface()
             self.screen.blit(patternSurf, pygame.mouse.get_pos())
 
@@ -288,19 +303,39 @@ class Game:
         #    if pattern.getRows():
         #        self.patterns.append(pattern)
 
+        widestPattern = None
+
         for path in glob.glob("patterns/oscillators/*"):
             pattern = Pattern(path.split("/")[-1], path, PatternType.Oscillator)
             if pattern.getRows():
                 self.patterns.append(pattern)
+                patternWidth = pattern.getWidth()
+                if widestPattern is None or patternWidth > widestPattern.getWidth():
+                    widestPattern = pattern
 
         for path in glob.glob("patterns/spaceships/*"):
             pattern = Pattern(path.split("/")[-1], path, PatternType.Spacehship)
             if pattern.getRows():
                 self.patterns.append(pattern)
+                patternWidth = pattern.getWidth()
+                if widestPattern is None or patternWidth > widestPattern.getWidth():
+                    widestPattern = pattern
 
         for path in glob.glob("patterns/flipflops/*"):
             pattern = Pattern(path.split("/")[-1], path, PatternType.FlipFlop)
             if pattern.getRows():
                 self.patterns.append(pattern)
+                patternWidth = pattern.getWidth()
+                if widestPattern is None or patternWidth > widestPattern.getWidth():
+                    widestPattern = pattern
 
+        for path in glob.glob("patterns/methuselah/*"):
+            pattern = Pattern(path.split("/")[-1], path, PatternType.Methuselah)
+            if pattern.getRows():
+                self.patterns.append(pattern)
+                patternWidth = pattern.getWidth()
+                if widestPattern is None or patternWidth > widestPattern.getWidth():
+                    widestPattern = pattern
+
+        self.patternsMenu.setPatternRowWidth(widestPattern.getWidth())
         self.patternsMenu.setPatterns(self.patterns)

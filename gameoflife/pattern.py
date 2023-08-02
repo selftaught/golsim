@@ -24,6 +24,7 @@ class PatternType:
     Oscillator: int = 2
     Spacehship: int = 3
     FlipFlop: int = 4
+    Methuselah: int = 5
 
 
 class Pattern:
@@ -63,11 +64,31 @@ class Pattern:
     def getCells(self) -> List[List]:
         return self.cells
 
-    def getRows(self) -> int:
-        return self.rows
+    def getCols(self) -> int:
+        return self.cols
 
     def getHeight(self) -> int:
         return self.cellHeight * len(self.cells)
+
+    def getName(self) -> str:
+        return self.name
+
+    def getRows(self) -> int:
+        return self.rows
+
+    def getSurface(self) -> Surface:
+        width = self.rowMaxLen * self.cellWidth
+        height = len(self.cells) * self.cellHeight
+        surf = Surface((width, height)).convert_alpha()
+        surf.fill(self.bgColor)
+        for y in range(len(self.cells)):
+            for x in range(len(self.cells[y])):
+                cell = self.cells[y][x]
+                cell.draw(surf)
+        return surf
+
+    def getWidth(self) -> int:
+        return self.cellWidth * self.cols
 
     def setBgColor(self, color) -> None:
         self.bgColor = color
@@ -90,17 +111,6 @@ class Pattern:
                 cell = self.cells[y][x]
                 cell.setHeight(width)
 
-    def getSurface(self) -> Surface:
-        width = self.rowMaxLen * self.cellWidth
-        height = len(self.cells) * self.cellHeight
-        surf = Surface((width, height))
-        surf.fill(self.bgColor)
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
-                cell.draw(surf)
-        return surf
-
 
 class PatternMenuRow:
     def __init__(
@@ -117,11 +127,11 @@ class PatternMenuRow:
         self.hoveredBgColor = GREY_LIGHT2
         self.pattern = pattern
         self.pattern.setBgColor(self.bgColor)
-        self.padding = 5
+        self.padding = 0
         self.h = self.pattern.getHeight() + (self.padding * 2)
         self.x = x
         self.y = y
-        self.w = w
+        self.w = w + (self.padding * 2)
         self.cursor = pygame.SYSTEM_CURSOR_ARROW
 
     def update(self) -> None:
@@ -173,18 +183,18 @@ class PatternMenuRow:
 
 
 class PatternMenu:
-    def __init__(self, x: int, y: int, w: int) -> None:
+    def __init__(self, x: int, y: int) -> None:
+        self.padding = 12
         self.x: int = x
         self.y: int = y
-        self.w: int = w
+        self.w: int = 0
+        self.pmrW: int = 0
         self.font = None
         self.bgColor = GREY_LIGHT1
-        self.padding = 12
         self.closeBtn = CircleButton("X", self.x + self.w, self.y, 10, RED_LIGHT1)
+        self.closeBtn.setHoverBackgroundColor(RED)
         self._enabled = False
         self.rows = []
-
-        self.closeBtn.setHoverBackgroundColor(RED)
 
     def enable(self) -> None:
         self._enabled = True
@@ -211,13 +221,18 @@ class PatternMenu:
             row = PatternMenuRow(
                 self.x + self.padding,
                 self.y + yOffset,
-                self.w - (self.padding * 2),
+                self.pmrW,
                 pattern,
                 self.bgColor,
                 BLACK,
             )
             self.rows.append(row)
             yOffset += row.getHeight() + self.padding
+
+    def setPatternRowWidth(self, patternRowWidth:int) -> None:
+        self.w = patternRowWidth + (self.padding * 2)
+        self.pmrW = patternRowWidth
+        self.closeBtn.setX(self.x + self.w)
 
     def getHeight(self) -> int:
         height = self.padding
@@ -253,8 +268,6 @@ class PatternMenu:
         if self._enabled:
             height = self.getHeight()
             rect = Rect(self.x, self.y, self.w, height)
-            yOffset = self.padding
-
             draw.rect(screen, self.bgColor, rect)
             drawRectBorder(screen, self.x, self.y, self.w, height)
 

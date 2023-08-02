@@ -25,3 +25,4 @@ A PyGame implementation of Conway's Game of Life
 - [ ] Resizeable grid
 - [ ] Frame recording
 - [ ] Rotatable pattern selection
+- [ ] Panning

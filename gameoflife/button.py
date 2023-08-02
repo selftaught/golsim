@@ -100,7 +100,7 @@ class RectButton(BaseButton):
         self.rect.y = y
 
     def draw(self, surface: Surface) -> None:
-        draw.rect(surface, self.bgColor, self.rect)
+        draw.rect(surface, self.currBgColor, self.rect)
         textImg = self.font.render(self.text, True, (255, 255, 255))
         fontSize = self.font.size(self.text)
         textX = self.x + ((self.w / 2) - (fontSize[0] / 2))
@@ -120,12 +120,14 @@ class RectButton(BaseButton):
             mY >= self.y and mY <= self.y + self.h
         ):
             self.cursor = pygame.SYSTEM_CURSOR_HAND
+            self.currBgColor = self.hoverBgColor
             pygame.mouse.set_cursor(self.cursor)
         else:
             if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
                 self.cursor = pygame.SYSTEM_CURSOR_ARROW
                 pygame.mouse.set_cursor(self.cursor)
-
+            if self.currBgColor != self.bgColor:
+                self.currBgColor = self.bgColor
 class CircleButton(BaseButton):
     def __init__(
         self,
