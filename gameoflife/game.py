@@ -27,18 +27,6 @@ MOUSEBUTTONUP_SCROLL_UP = 4
 MOUSEBUTTONUP_SCROLL_DOWN = 5
 
 class Game:
-    cfg: Config = None
-    running: bool = True
-    height: int
-    width: int
-    cellHeight: int = None
-    cellWidth: int = None
-    cells: list = []
-    cols: int = None
-    rows: int = None
-    clock: pygame.time.Clock = None
-    screen: pygame.Surface = None
-
     def __init__(self) -> None:
         pygame.init()
         pygame.display.set_caption("Game of Life")
@@ -66,6 +54,7 @@ class Game:
         self._clear = False
         self._next = False
         self._reset = False
+        self._running = True
         self._stopped = True
         self.patternsMenu = PatternMenu(50, 50)
         self.patternsMenu.setFont(self.font)
@@ -128,7 +117,7 @@ class Game:
             'spaceships': PatternType.Spacehship,
             'flipflops': PatternType.FlipFlop,
             'methuselah': PatternType.Methuselah,
-           #'still-lifes': PatternType.StillLife
+            #'still-lifes': PatternType.StillLife
         }
 
         widestPattern = None
@@ -150,7 +139,7 @@ class Game:
                     self.patternSelected.setCellWidth(self.cellWidth)
                 return
             if event.type == pygame.QUIT:
-                self.running = False
+                self.quit()
             if event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.patternSelected = None
@@ -176,7 +165,7 @@ class Game:
                         elif bID == ButtonID.RESET:
                             self.reset()
                         elif bID == ButtonID.EXIT:
-                            self.running = False
+                            self.quit()
 
                 if mY < self.height - self.actionBarHeight:
                     cellX = int(mX / self.cellWidth)
@@ -205,7 +194,7 @@ class Game:
                     pass # TODO: zoom
 
     def loop(self) -> None:
-        while self.running:
+        while self.running():
             self.eventLoop()
             self.update()
             self.draw()
@@ -340,13 +329,19 @@ class Game:
         self._next = False
         return val
 
-    def reset(self) -> None:
-        self._reset = True
-
     def isReset(self) -> bool:
         val = self._reset
         self._reset = False
         return val
+
+    def reset(self) -> None:
+        self._reset = True
+
+    def running(self) -> bool:
+        return self._running
+
+    def quit(self) -> None:
+        self._running = False
 
     def start(self) -> None:
         self._stopped = False
