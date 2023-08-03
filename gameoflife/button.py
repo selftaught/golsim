@@ -151,7 +151,6 @@ class CircleButton(BaseButton):
         if self.border:
             draw.circle(surface, self.borderColor, (self.x, self.y), self.radius, 1)
         if self.text:
-            textLen = len(self.text)
             textImg = self.font.render(self.text, True, BLACK)
             fontSize = self.font.size(self.text)
             textX = self.x - int(fontSize[0] / 2)

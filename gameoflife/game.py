@@ -10,6 +10,8 @@ from gameoflife.button import RectButton
 from gameoflife.cell import *
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
+from typing import Tuple
+
 
 class ButtonID:
     CLEAR = "Clear"
@@ -66,7 +68,11 @@ class Game:
         self.patternsMenu = PatternMenu(50, 50)
         self.patternsMenu.setFont(self.font)
         self.patterns = []
-        self.selectedPattern = None
+        self.patternSelected = None
+        self.generation = 0
+        self.cellsAlive = 0
+        self.cellsBirthed = 0
+        self.cellsDied = 0
 
         # Zoom
         #self.zoom = 0
@@ -109,15 +115,15 @@ class Game:
             handlerResp = self.patternsMenu.eventHandler(event)
             if handlerResp:
                 if isinstance(handlerResp, Pattern):
-                    self.selectedPattern = handlerResp
-                    self.selectedPattern.setCellHeight(self.cellHeight)
-                    self.selectedPattern.setCellWidth(self.cellWidth)
+                    self.patternSelected = handlerResp
+                    self.patternSelected.setCellHeight(self.cellHeight)
+                    self.patternSelected.setCellWidth(self.cellWidth)
                 return
             if event.type == pygame.QUIT:
                 self.running = False
             if event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
-                    self.selectedPattern = None
+                    self.patternSelected = None
                 if event.key == K_g:
                     self.grid.toggle()
             elif event.type == MOUSEBUTTONUP and event.dict.get('button') == MOUSEBUTTONUP_LCLICK:
@@ -126,7 +132,7 @@ class Game:
                     if button.clicked(mX, mY):
                         bID = button.getID()
                         if bID == ButtonID.CLEAR:
-                            self._clear = True
+                            self.clear()
                         elif bID == ButtonID.NEXT:
                             self._next = True
                         elif bID == ButtonID.START:
@@ -146,8 +152,8 @@ class Game:
                     cellX = int(mX / self.cellWidth)
                     cellY = int(mY / self.cellHeight)
                     try:
-                        if self.selectedPattern:
-                            selectedCells = self.selectedPattern.getCells()
+                        if self.patternSelected:
+                            selectedCells = self.patternSelected.getCells()
                             for y in range(len(selectedCells)):
                                 for x in range(len(selectedCells[y])):
                                     nextCellX = cellX + x
@@ -197,6 +203,7 @@ class Game:
         self.patternsMenu.update()
 
         if not self.stopped() or self.next():
+            self.generation += 1
             for y in range(len(self.cells)):
                 for x in range(len(self.cells[y])):
                     alive = cellAliveNeighborCount(
@@ -222,17 +229,23 @@ class Game:
                             cell.setNextState(CellState.DEAD)
 
             allCellsDead = True
-            cellsDead = 0
-            cellsAlive = 0
-            cellsBirth = 0
-
+            self.cellsAlive = 0
+            self.cellsBirthed = 0
+            self.cellsDied = 0
             for y in range(len(self.cells)):
                 for x in range(len(self.cells[y])):
                     cell = self.cells[y][x]
+                    currState = cell.getState()
                     nextState = cell.getNextState()
                     cell.setState(nextState)
                     if nextState == CellState.ALIVE:
+                        self.cellsAlive += 1
+                        if currState == CellState.DEAD:
+                            self.cellsBirthed += 1
                         allCellsDead = False
+                    else:
+                        if currState == CellState.ALIVE:
+                            self.cellsDied += 1
 
             if allCellsDead:
                 self.stop()
@@ -247,11 +260,10 @@ class Game:
 
         self.grid.draw(self.screen)
         self.drawActionBar()
-        self.drawButtons()
         self.patternsMenu.draw(self.screen)
 
-        if self.selectedPattern and pygame.mouse.get_pos()[1] < self.height - self.actionBarHeight:
-            patternSurf = self.selectedPattern.getSurface()
+        if self.patternSelected and pygame.mouse.get_pos()[1] < self.height - self.actionBarHeight:
+            patternSurf = self.patternSelected.getSurface()
             self.screen.blit(patternSurf, pygame.mouse.get_pos())
 
         pygame.display.update()
@@ -263,12 +275,30 @@ class Game:
         pygame.draw.rect(self.screen, GREY_LIGHT1, bg)
         pygame.draw.line(self.screen, GREY, (x, y), (x + self.width, y))
 
-    def drawButtons(self) -> None:
         for button in self.buttons:
             button.draw(self.screen)
 
+        stats = [
+            f"Alive: {self.cellsAlive}",
+            f"Births: {self.cellsBirthed}",
+            f"Deaths: {self.cellsDied}",
+            f"Generation: {self.generation}"
+        ]
+
+        statIdx = 0
+        statFont = pygame.font.Font(None, 11)
+        for stat in stats:
+            fontSize = statFont.size(stat)
+            textImg = self.font.render(stat, True, BLACK)
+            self.screen.blit(textImg, (10, (self.height - self.actionBarHeight + 5) + ((fontSize[1] * 2) * statIdx)))
+            statIdx += 1
+
     def clear(self) -> None:
         self._clear = True
+        self.cellsAlive = 0
+        self.cellsBirthed = 0
+        self.cellsDied = 0
+        self.generation = 0
 
     def cleared(self) -> bool:
         val = self._clear
@@ -297,13 +327,15 @@ class Game:
     def stopped(self) -> bool:
         return self._stopped
 
-    def loadPatterns(self) -> None:
+    def loadPatterns(self) -> Tuple
+
+    def loadAllPatterns(self) -> None:
+        widestPattern = None
+
         #for path in sorted(glob.glob("patterns/still-lifes/*")):
         #    pattern = Pattern(path.split("/")[-1], path, PatternType.StillLife)
         #    if pattern.getRows():
         #        self.patterns.append(pattern)
-
-        widestPattern = None
 
         for path in glob.glob("patterns/oscillators/*"):
             pattern = Pattern(path.split("/")[-1], path, PatternType.Oscillator)
