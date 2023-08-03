@@ -4,7 +4,7 @@ A PyGame implementation of Conway's Game of Life
 
 [![Build Status](https://app.travis-ci.com/selftaught/GameOfLife.svg?token=Tx7EAKup6EXJbMTwywxS&branch=main)](https://app.travis-ci.com/selftaught/GameOfLife)
 
-![Game of Life](https://i.imgur.com/YNgjamI.gif)
+![Game of Life](https://i.imgur.com/HfXrR09.png)
 
 ## Install requirements
 
@@ -20,7 +20,7 @@ A PyGame implementation of Conway's Game of Life
 # TODO
 
 - [ ] Cell selection & controls (copy, cut, save)
-- [ ] Scrollable content container (add to pattern menu to make it scrollable)
+- [ ] Scrollable pattern menu container
 - [ ] Grid zoom
 - [ ] Resizeable grid
 - [ ] Frame recording
