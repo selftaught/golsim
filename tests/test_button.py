@@ -14,7 +14,7 @@ class TestBaseButton:
     baseButtonBgColor = GREY
     baseButtonText = "Base Button"
 
-    def _baseButton(self):
+    def getBaseButton(self):
         return BaseButton(
             self.baseButtonText,
             self.baseButtonX,
@@ -24,7 +24,7 @@ class TestBaseButton:
         )
 
     def test_init(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         assert bb.x == self.baseButtonX
         assert bb.y == self.baseButtonY
         assert bb.w == self.baseButtonW
@@ -32,63 +32,63 @@ class TestBaseButton:
         assert bb.text == self.baseButtonText
 
     def test_setX(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         newX = random.randint(0, 300)
         bb.setX(newX)
         assert bb.x == newX
 
     def test_setY(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         newY = random.randint(0, 300)
         bb.setY(newY)
         assert bb.y == newY
 
     def test_setW(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         newW = random.randint(0, 300)
         bb.setW(newW)
         assert bb.w == newW
 
     def test_setFont(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         newFont = pygame.font.Font(None, 100)
         bb.setFont(newFont)
         assert bb.font is newFont
 
     def test_setBackgroundColor(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         bb.setBackgroundColor(RED)
         assert bb.bgColor == RED
 
     def test_setHoverBackgroundColor(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         bb.setBackgroundColor(RED)
         assert bb.bgColor == RED
 
     def test_setBorder(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         for b in [True, False]:
             bb.setBorder(b)
             assert bb.border == b
 
     def test_setText(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         bb.setText(ButtonText.PATTERNS)
         assert bb.getText() == ButtonText.PATTERNS
 
     def test_unimplementedDrawRaises(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         surf = pygame.surface.Surface((10, 10))
         with pytest.raises(NotImplementedError):
             bb.draw(surf)
 
     def test_unimplementedClickedRaises(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         with pytest.raises(NotImplementedError):
             bb.clicked(0, 0)
 
     def test_unimplementedUpdateRaises(self):
-        bb = self._baseButton()
+        bb = self.getBaseButton()
         with pytest.raises(NotImplementedError):
             bb.update()
 
