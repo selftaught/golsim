@@ -1,4 +1,4 @@
-from gameoflife.button import BaseButton, RectButton, CircleButton, ButtonID
+from gameoflife.button import BaseButton, RectButton, CircleButton, ButtonText
 from gameoflife.colors import GREY, RED
 
 import pygame
@@ -30,11 +30,6 @@ class TestBaseButton:
         assert bb.w == self.baseButtonW
         assert bb.bgColor == self.baseButtonBgColor
         assert bb.text == self.baseButtonText
-
-    def test_getID(self):
-        bb = self._baseButton()
-        bb.setID(ButtonID.EXIT)
-        assert bb.getID() == ButtonID.EXIT
 
     def test_setX(self):
         bb = self._baseButton()
@@ -78,16 +73,8 @@ class TestBaseButton:
 
     def test_setText(self):
         bb = self._baseButton()
-        newText = "0xc0decafe"
-        bb.setText(newText)
-        assert bb.text == newText
-
-    def test_setID(self):
-        bb = self._baseButton()
-        bb.setID(ButtonID.STOP)
-        assert bb.id == ButtonID.STOP
-        bb.setID(ButtonID.START)
-        assert bb.id == ButtonID.START
+        bb.setText(ButtonText.PATTERNS)
+        assert bb.getText() == ButtonText.PATTERNS
 
     def test_unimplementedDrawRaises(self):
         bb = self._baseButton()

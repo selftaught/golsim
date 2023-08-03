@@ -6,7 +6,7 @@ from pygame.locals import KEYDOWN, MOUSEBUTTONUP, K_g, K_ESCAPE
 from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1
 from gameoflife.config import Config
 from gameoflife.grid import Grid
-from gameoflife.button import RectButton, ButtonID
+from gameoflife.button import RectButton, ButtonText
 from gameoflife.cell import *
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
@@ -69,12 +69,12 @@ class Game:
         btnWidth = 100
 
         self.buttons = [
-            RectButton(ButtonID.RESET, btnWidth, btnHeight),
-            RectButton(ButtonID.CLEAR, btnWidth, btnHeight),
-            RectButton(ButtonID.START, btnWidth, btnHeight),
-            RectButton(ButtonID.NEXT, btnWidth, btnHeight),
-            RectButton(ButtonID.PATTERNS, btnWidth, btnHeight),
-            RectButton(ButtonID.EXIT, btnWidth, btnHeight),
+            RectButton(ButtonText.RESET, btnWidth, btnHeight),
+            RectButton(ButtonText.CLEAR, btnWidth, btnHeight),
+            RectButton(ButtonText.START, btnWidth, btnHeight),
+            RectButton(ButtonText.NEXT, btnWidth, btnHeight),
+            RectButton(ButtonText.PATTERNS, btnWidth, btnHeight),
+            RectButton(ButtonText.EXIT, btnWidth, btnHeight),
         ]
 
         btnCount = len(self.buttons)
@@ -139,22 +139,22 @@ class Game:
                 (mX, mY) = pygame.mouse.get_pos()
                 for button in self.buttons:
                     if button.clicked(mX, mY):
-                        bID = button.getID()
-                        if bID == ButtonID.CLEAR:
+                        btnTxt = button.getText()
+                        if btnTxt == ButtonText.CLEAR:
                             self.clear()
-                        elif bID == ButtonID.NEXT:
+                        elif btnTxt == ButtonText.NEXT:
                             self._next = True
-                        elif bID == ButtonID.START:
+                        elif btnTxt == ButtonText.START:
                             self.start()
-                            button.setID(ButtonID.STOP)
-                        elif bID == ButtonID.STOP:
+                            button.setID(ButtonText.STOP)
+                        elif btnTxt == ButtonText.STOP:
                             self.stop()
-                            button.setID(ButtonID.START)
-                        elif bID == ButtonID.PATTERNS:
+                            button.setID(ButtonText.START)
+                        elif btnTxt == ButtonText.PATTERNS:
                             self.patternsMenu.toggle()
-                        elif bID == ButtonID.RESET:
+                        elif btnTxt == ButtonText.RESET:
                             self.reset()
-                        elif bID == ButtonID.EXIT:
+                        elif btnTxt == ButtonText.EXIT:
                             self.quit()
 
                 if mY < self.actionBarY:

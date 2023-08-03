@@ -7,7 +7,7 @@ from pygame.rect import Rect
 from gameoflife.colors import BLACK, GREY
 
 
-class ButtonID:
+class ButtonText:
     CLEAR = "Clear"
     EXIT = "Exit"
     NEXT = "Next"
@@ -26,7 +26,6 @@ class BaseButton:
         bgColor: Color,
     ) -> None:
         self.text = text
-        self.id = text
         self.x = x
         self.y = y
         self.w = w
@@ -39,8 +38,8 @@ class BaseButton:
         self.borderColor = BLACK
         self.cursor = pygame.SYSTEM_CURSOR_ARROW
 
-    def getID(self) -> str:
-        return self.id
+    def getText(self) -> str:
+        return self.text
 
     def setX(self, x: int) -> None:
         self.x = x
@@ -69,10 +68,6 @@ class BaseButton:
     def setText(self, text: str) -> None:
         self.text = text
         self.id = text
-
-    def setID(self, id: str) -> None:
-        self.text = id
-        self.id = id
 
     def draw(self, screen: Surface):
         raise NotImplementedError("button draw() not implemented!")
