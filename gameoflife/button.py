@@ -7,6 +7,15 @@ from pygame.rect import Rect
 from gameoflife.colors import BLACK, GREY
 
 
+class ButtonID:
+    CLEAR = "Clear"
+    EXIT = "Exit"
+    NEXT = "Next"
+    RESET = "Reset"
+    START = "Start"
+    STOP = "Stop"
+    PATTERNS = "Patterns"
+
 class BaseButton:
     def __init__(
         self,
@@ -128,6 +137,7 @@ class RectButton(BaseButton):
                 pygame.mouse.set_cursor(self.cursor)
             if self.currBgColor != self.bgColor:
                 self.currBgColor = self.bgColor
+
 class CircleButton(BaseButton):
     def __init__(
         self,

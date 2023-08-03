@@ -6,19 +6,11 @@ from pygame.locals import KEYDOWN, MOUSEBUTTONUP, K_g, K_ESCAPE
 from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1
 from gameoflife.config import Config
 from gameoflife.grid import Grid
-from gameoflife.button import RectButton
+from gameoflife.button import RectButton, ButtonID
 from gameoflife.cell import *
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
 
-class ButtonID:
-    CLEAR = "Clear"
-    EXIT = "Exit"
-    NEXT = "Next"
-    RESET = "Reset"
-    START = "Start"
-    STOP = "Stop"
-    PATTERNS = "Patterns"
 
 MOUSEBUTTONUP_LCLICK = 1
 MOUSEBUTTONUP_SCROLL_UP = 4
@@ -89,7 +81,7 @@ class Game:
         buttonsTotalWidth = (btnCount * (btnWidth + btnMargin)) - btnMargin
         remainingScreenSpace = self.width - buttonsTotalWidth
         buttonX = remainingScreenSpace / 2
-        buttonY = (self.height - self.actionBarHeight) + ((self.actionBarHeight / 2) - btnHeight / 2)
+        buttonY = (self.actionBarY) + ((self.actionBarHeight / 2) - btnHeight / 2)
 
         for button in self.buttons:
             button.setFont(self.font)
@@ -165,7 +157,7 @@ class Game:
                         elif bID == ButtonID.EXIT:
                             self.quit()
 
-                if mY < self.height - self.actionBarHeight:
+                if mY < self.actionBarY:
                     cellX = int(mX / self.cellWidth)
                     cellY = int(mY / self.cellHeight)
                     try:
@@ -279,7 +271,7 @@ class Game:
         self.drawActionBar()
         self.patternsMenu.draw(self.screen)
 
-        if self.patternSelected and pygame.mouse.get_pos()[1] < self.height - self.actionBarHeight:
+        if self.patternSelected and pygame.mouse.get_pos()[1] < self.actionBarY:
             patternSurf = self.patternSelected.getSurface()
             self.screen.blit(patternSurf, pygame.mouse.get_pos())
 
