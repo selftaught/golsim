@@ -56,6 +56,8 @@ class Game:
         self.cellHeight = self.cfg.get("cell.height", default=5)
         self.cellWidth = self.cfg.get("cell.width", default=5)
         self.actionBarHeight = 70
+        self.actionBarX = 0
+        self.actionBarY = self.height - self.actionBarHeight
         self.rows = int((self.height - self.actionBarHeight) / self.cellHeight)
         self.cols = int(self.width / self.cellWidth)
         self.clock = pygame.time.Clock()
@@ -79,7 +81,7 @@ class Game:
         #self.zoomMax = None
         #self.zoomMin = None
 
-        self.loadPatterns()
+        self.loadAllPatterns()
         self.initButtons()
 
     def initButtons(self) -> None:
@@ -109,6 +111,34 @@ class Game:
             button.setY(buttonY)
             buttonX += btnWidth + btnMargin
 
+    def loadPatterns(self, path:str, patternType:PatternType) -> Pattern:
+        widestPattern = None
+        for p in glob.glob(path):
+            pattern = Pattern(path.split("/")[-1], p, patternType)
+            if pattern.getRows():
+                self.patterns.append(pattern)
+                patternWidth = pattern.getWidth()
+                if widestPattern is None or patternWidth > widestPattern.getWidth():
+                    widestPattern = pattern
+        return widestPattern
+
+    def loadAllPatterns(self) -> None:
+        patternDirTypes = {
+            'oscillators': PatternType.Oscillator,
+            'spaceships': PatternType.Spacehship,
+            'flipflops': PatternType.FlipFlop,
+            'methuselah': PatternType.Methuselah,
+           #'still-lifes': PatternType.StillLife
+        }
+
+        widestPattern = None
+        for patternDir, patternType in patternDirTypes.items():
+            pattern = self.loadPatterns(f"patterns/{patternDir}/*", patternType)
+            if widestPattern is None or pattern.getWidth() > widestPattern.getWidth():
+                widestPattern = pattern
+
+        self.patternsMenu.setPatternRowWidth(widestPattern.getWidth())
+        self.patternsMenu.setPatterns(self.patterns)
 
     def eventLoop(self) -> None:
         for event in pygame.event.get():
@@ -269,8 +299,8 @@ class Game:
         pygame.display.update()
 
     def drawActionBar(self) -> None:
-        x = 0
-        y = self.height - self.actionBarHeight
+        x = self.actionBarX
+        y = self.actionBarY
         bg = pygame.Rect(x, y, self.width, self.actionBarHeight)
         pygame.draw.rect(self.screen, GREY_LIGHT1, bg)
         pygame.draw.line(self.screen, GREY, (x, y), (x + self.width, y))
@@ -290,7 +320,7 @@ class Game:
         for stat in stats:
             fontSize = statFont.size(stat)
             textImg = self.font.render(stat, True, BLACK)
-            self.screen.blit(textImg, (10, (self.height - self.actionBarHeight + 5) + ((fontSize[1] * 2) * statIdx)))
+            self.screen.blit(textImg, (10, (y + 5) + ((fontSize[1] * 2) * statIdx)))
             statIdx += 1
 
     def clear(self) -> None:
@@ -326,48 +356,3 @@ class Game:
 
     def stopped(self) -> bool:
         return self._stopped
-
-    def loadPatterns(self) -> Tuple
-
-    def loadAllPatterns(self) -> None:
-        widestPattern = None
-
-        #for path in sorted(glob.glob("patterns/still-lifes/*")):
-        #    pattern = Pattern(path.split("/")[-1], path, PatternType.StillLife)
-        #    if pattern.getRows():
-        #        self.patterns.append(pattern)
-
-        for path in glob.glob("patterns/oscillators/*"):
-            pattern = Pattern(path.split("/")[-1], path, PatternType.Oscillator)
-            if pattern.getRows():
-                self.patterns.append(pattern)
-                patternWidth = pattern.getWidth()
-                if widestPattern is None or patternWidth > widestPattern.getWidth():
-                    widestPattern = pattern
-
-        for path in glob.glob("patterns/spaceships/*"):
-            pattern = Pattern(path.split("/")[-1], path, PatternType.Spacehship)
-            if pattern.getRows():
-                self.patterns.append(pattern)
-                patternWidth = pattern.getWidth()
-                if widestPattern is None or patternWidth > widestPattern.getWidth():
-                    widestPattern = pattern
-
-        for path in glob.glob("patterns/flipflops/*"):
-            pattern = Pattern(path.split("/")[-1], path, PatternType.FlipFlop)
-            if pattern.getRows():
-                self.patterns.append(pattern)
-                patternWidth = pattern.getWidth()
-                if widestPattern is None or patternWidth > widestPattern.getWidth():
-                    widestPattern = pattern
-
-        for path in glob.glob("patterns/methuselah/*"):
-            pattern = Pattern(path.split("/")[-1], path, PatternType.Methuselah)
-            if pattern.getRows():
-                self.patterns.append(pattern)
-                patternWidth = pattern.getWidth()
-                if widestPattern is None or patternWidth > widestPattern.getWidth():
-                    widestPattern = pattern
-
-        self.patternsMenu.setPatternRowWidth(widestPattern.getWidth())
-        self.patternsMenu.setPatterns(self.patterns)
