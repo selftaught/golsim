@@ -10,8 +10,6 @@ from gameoflife.button import RectButton
 from gameoflife.cell import *
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
-from typing import Tuple
-
 
 class ButtonID:
     CLEAR = "Clear"
