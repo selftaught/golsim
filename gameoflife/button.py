@@ -42,6 +42,9 @@ class BaseButton:
     def getBorderColor(self) -> Color:
         return self.borderColor
 
+    def getHoverBackgroundColor(self) -> Color:
+        return self.hoverBgColor
+
     def getX(self) -> int:
         return self.x
 

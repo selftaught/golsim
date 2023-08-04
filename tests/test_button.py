@@ -51,12 +51,12 @@ class TestBaseButton:
     def test_setBackgroundColor(self):
         button = self.getButton()
         button.setBackgroundColor(RED)
-        assert button.bgColor == RED
+        assert button.getBackgroundColor() == RED
 
     def test_setHoverBackgroundColor(self):
         button = self.getButton()
-        button.setBackgroundColor(RED)
-        assert button.bgColor == RED
+        button.setHoverBackgroundColor(RED)
+        assert button.getHoverBackgroundColor() == RED
 
     def test_setBorder(self):
         button = self.getButton()
