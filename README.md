@@ -16,8 +16,15 @@ A PyGame implementation of Conway's Game of Life
 
 `python3 game.py`
 
+## Contributing
 
-# TODO
+1. Fork it
+2. Create feature branch (`git checkout -b feature/adding-xyz`)
+3. Make some changes and commit (`git commit -m '...'`)
+4. Push changes to remote feature branch (`git push origin feature/adding-x-and-y`)
+5. Create PR when feature branch is ready for review
+
+## TODO
 
 - [ ] Cell selection & controls (copy, cut, save)
 - [ ] Scrollable pattern menu container
