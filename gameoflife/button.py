@@ -22,13 +22,11 @@ class BaseButton:
         text: str,
         x: int,
         y: int,
-        w: int,
         bgColor: Color,
     ) -> None:
         self.text = text
         self.x = x
         self.y = y
-        self.w = w
         self.currBgColor = bgColor
         self.bgColor = bgColor
         self.textColor = None
@@ -38,6 +36,18 @@ class BaseButton:
         self.borderColor = BLACK
         self.cursor = pygame.SYSTEM_CURSOR_ARROW
 
+    def getBackgroundColor(self) -> Color:
+        return self.bgColor
+
+    def getBorderColor(self) -> Color:
+        return self.borderColor
+
+    def getX(self) -> int:
+        return self.x
+
+    def getY(self) -> int:
+        return self.y
+
     def getText(self) -> str:
         return self.text
 
@@ -46,9 +56,6 @@ class BaseButton:
 
     def setY(self, y: int) -> None:
         self.y = y
-
-    def setW(self, w: int) -> None:
-        self.w = w
 
     def setFont(self, font: Font) -> None:
         self.font = font
@@ -63,11 +70,10 @@ class BaseButton:
         self.border = border
 
     def setBorderColor(self, color: Color):
-        pass
+        self.borderColor = color
 
     def setText(self, text: str) -> None:
         self.text = text
-        self.id = text
 
     def draw(self, screen: Surface):
         raise NotImplementedError("button draw() not implemented!")
@@ -77,6 +83,57 @@ class BaseButton:
 
     def update(self) -> None:
         raise NotImplementedError("button update() not implemented!")
+
+class CircleButton(BaseButton):
+    def __init__(
+        self,
+        text: str,
+        x: int,
+        y: int,
+        radius: float,
+        bgColor: Color = GREY,
+    ) -> None:
+        super().__init__(text, x, y, bgColor)
+        self.radius: float = radius
+
+    def getRadius(self) -> float:
+        return self.radius
+
+    def setRadius(self, radius: float) -> None:
+        self.radius = radius
+
+    def draw(self, surface: Surface) -> None:
+        draw.circle(surface, self.currBgColor, (self.x, self.y), self.radius, 0)
+        if self.border:
+            draw.circle(surface, self.borderColor, (self.x, self.y), self.radius, 1)
+        if self.text:
+            textImg = self.font.render(self.text, True, BLACK)
+            fontSize = self.font.size(self.text)
+            textX = self.x - int(fontSize[0] / 2)
+            textY = self.y - int(fontSize[1] / 2) + 1
+            surface.blit(textImg, (textX, textY))
+
+    def clicked(self, mouseX: int, mouseY: int) -> bool:
+        sqMouseX = (mouseX - self.x) ** 2
+        sqMouseY = (mouseY - self.y) ** 2
+        if math.sqrt(sqMouseX + sqMouseY) < self.radius:
+            return True
+        return False
+
+    def update(self) -> None:
+        (mX, mY) = pygame.mouse.get_pos()
+        sqMouseX = (mX - self.x) ** 2
+        sqMouseY = (mY - self.y) ** 2
+        if math.sqrt(sqMouseX + sqMouseY) < self.radius:
+            self.cursor = pygame.SYSTEM_CURSOR_HAND
+            pygame.mouse.set_cursor(self.cursor)
+            self.currBgColor = self.hoverBgColor
+        else:
+            if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
+                self.cursor = pygame.SYSTEM_CURSOR_ARROW
+                pygame.mouse.set_cursor(self.cursor)
+            if self.currBgColor != self.bgColor:
+                self.currBgColor = self.bgColor
 
 class RectButton(BaseButton):
     def __init__(
@@ -88,12 +145,23 @@ class RectButton(BaseButton):
         y: int = 0,
         bgColor: Color = GREY,
     ) -> None:
-        super().__init__(text, x, y, w, bgColor)
+        super().__init__(text, x, y, bgColor)
         self.h: int = h
+        self.w: int = w
         self.rect: Rect = Rect(x, y, w, h)
+
+    def getRect(self) -> Rect:
+        return self.rect
+
+    def getH(self) -> int:
+        return self.h
 
     def setH(self, h: int) -> None:
         self.h = h
+        self.rect.h = h
+
+    def setW(self, w: int) -> None:
+        self.w = w
 
     def setX(self, x: int) -> None:
         self.x = x
@@ -126,57 +194,6 @@ class RectButton(BaseButton):
             self.cursor = pygame.SYSTEM_CURSOR_HAND
             self.currBgColor = self.hoverBgColor
             pygame.mouse.set_cursor(self.cursor)
-        else:
-            if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
-                self.cursor = pygame.SYSTEM_CURSOR_ARROW
-                pygame.mouse.set_cursor(self.cursor)
-            if self.currBgColor != self.bgColor:
-                self.currBgColor = self.bgColor
-
-class CircleButton(BaseButton):
-    def __init__(
-        self,
-        text: str,
-        x: int,
-        y: int,
-        radius: float,
-        bgColor: Color = GREY,
-    ) -> None:
-        super().__init__(text, x, y, 0, bgColor)
-        self.radius: float = radius
-
-    def getRadius(self) -> float:
-        return self.radius
-
-    def setRadius(self, radius: float) -> None:
-        self.radius = radius
-
-    def draw(self, surface: Surface) -> None:
-        draw.circle(surface, self.currBgColor, (self.x, self.y), self.radius, self.w)
-        if self.border:
-            draw.circle(surface, self.borderColor, (self.x, self.y), self.radius, 1)
-        if self.text:
-            textImg = self.font.render(self.text, True, BLACK)
-            fontSize = self.font.size(self.text)
-            textX = self.x - int(fontSize[0] / 2)
-            textY = self.y - int(fontSize[1] / 2) + 1
-            surface.blit(textImg, (textX, textY))
-
-    def clicked(self, mouseX: int, mouseY: int) -> bool:
-        sqMouseX = (mouseX - self.x) ** 2
-        sqMouseY = (mouseY - self.y) ** 2
-        if math.sqrt(sqMouseX + sqMouseY) < self.radius:
-            return True
-        return False
-
-    def update(self) -> None:
-        (mX, mY) = pygame.mouse.get_pos()
-        sqMouseX = (mX - self.x) ** 2
-        sqMouseY = (mY - self.y) ** 2
-        if math.sqrt(sqMouseX + sqMouseY) < self.radius:
-            self.cursor = pygame.SYSTEM_CURSOR_HAND
-            pygame.mouse.set_cursor(self.cursor)
-            self.currBgColor = self.hoverBgColor
         else:
             if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
                 self.cursor = pygame.SYSTEM_CURSOR_ARROW

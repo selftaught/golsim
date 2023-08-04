@@ -1,5 +1,6 @@
 from gameoflife.button import BaseButton, RectButton, CircleButton, ButtonText
-from gameoflife.colors import GREY, RED
+from gameoflife.colors import BLUE, GREY, RED
+from pygame.color import Color
 
 import pygame
 import pytest
@@ -14,88 +15,142 @@ class TestBaseButton:
     baseButtonBgColor = GREY
     baseButtonText = "Base Button"
 
-    def getBaseButton(self):
+    def getButton(self):
         return BaseButton(
             self.baseButtonText,
             self.baseButtonX,
             self.baseButtonY,
-            self.baseButtonW,
             self.baseButtonBgColor
         )
 
     def test_init(self):
-        bb = self.getBaseButton()
-        assert bb.x == self.baseButtonX
-        assert bb.y == self.baseButtonY
-        assert bb.w == self.baseButtonW
-        assert bb.bgColor == self.baseButtonBgColor
-        assert bb.text == self.baseButtonText
+        button = self.getButton()
+        assert button.getX() == self.baseButtonX
+        assert button.getY() == self.baseButtonY
+        assert button.getBackgroundColor() == self.baseButtonBgColor
+        assert button.getText() == self.baseButtonText
 
     def test_setX(self):
-        bb = self.getBaseButton()
+        button = self.getButton()
         newX = random.randint(0, 300)
-        bb.setX(newX)
-        assert bb.x == newX
+        button.setX(newX)
+        assert button.getX() == newX
 
     def test_setY(self):
-        bb = self.getBaseButton()
+        button = self.getButton()
         newY = random.randint(0, 300)
-        bb.setY(newY)
-        assert bb.y == newY
-
-    def test_setW(self):
-        bb = self.getBaseButton()
-        newW = random.randint(0, 300)
-        bb.setW(newW)
-        assert bb.w == newW
+        button.setY(newY)
+        assert button.getY() == newY
 
     def test_setFont(self):
-        bb = self.getBaseButton()
+        button = self.getButton()
         newFont = pygame.font.Font(None, 100)
-        bb.setFont(newFont)
-        assert bb.font is newFont
+        button.setFont(newFont)
+        assert button.font is newFont
 
     def test_setBackgroundColor(self):
-        bb = self.getBaseButton()
-        bb.setBackgroundColor(RED)
-        assert bb.bgColor == RED
+        button = self.getButton()
+        button.setBackgroundColor(RED)
+        assert button.bgColor == RED
 
     def test_setHoverBackgroundColor(self):
-        bb = self.getBaseButton()
-        bb.setBackgroundColor(RED)
-        assert bb.bgColor == RED
+        button = self.getButton()
+        button.setBackgroundColor(RED)
+        assert button.bgColor == RED
 
     def test_setBorder(self):
-        bb = self.getBaseButton()
+        button = self.getButton()
         for b in [True, False]:
-            bb.setBorder(b)
-            assert bb.border == b
+            button.setBorder(b)
+            assert button.border == b
+
+    def test_setBorderColor(self):
+        button = self.getButton()
+        button.setBorderColor(BLUE)
+        assert button.getBorderColor() == BLUE
 
     def test_setText(self):
-        bb = self.getBaseButton()
-        bb.setText(ButtonText.PATTERNS)
-        assert bb.getText() == ButtonText.PATTERNS
+        button = self.getButton()
+        button.setText(ButtonText.PATTERNS)
+        assert button.getText() == ButtonText.PATTERNS
 
     def test_unimplementedDrawRaises(self):
-        bb = self.getBaseButton()
+        button = self.getButton()
         surf = pygame.surface.Surface((10, 10))
         with pytest.raises(NotImplementedError):
-            bb.draw(surf)
+            button.draw(surf)
 
     def test_unimplementedClickedRaises(self):
-        bb = self.getBaseButton()
+        button = self.getButton()
         with pytest.raises(NotImplementedError):
-            bb.clicked(0, 0)
+            button.clicked(0, 0)
 
     def test_unimplementedUpdateRaises(self):
-        bb = self.getBaseButton()
+        button = self.getButton()
         with pytest.raises(NotImplementedError):
-            bb.update()
+            button.update()
 
 
 class TestCircleButton:
-    pass
+    circleButtonText : str = "X"
+    circleButtonX : int = 50
+    circleButtonY : int = 50
+    circleButtonRadius : float = 4.0
+    circleButtonBgColor : Color = GREY
+
+    def getButton(self):
+        return CircleButton(
+            self.circleButtonText,
+            self.circleButtonX,
+            self.circleButtonY,
+            self.circleButtonRadius,
+            self.circleButtonBgColor
+        )
+
+    def test_init(self):
+        button = self.getButton()
+        assert button.getText() == self.circleButtonText
+        assert button.getX() == self.circleButtonX
+        assert button.getY() == self.circleButtonY
+        assert button.getRadius() == self.circleButtonRadius
+        assert button.getBackgroundColor() == self.circleButtonBgColor
+
+    def test_radius(self):
+        button = self.getButton()
+        radius = 5.0
+        button.setRadius(radius)
+        assert button.getRadius() == radius
+
+    def test_clicked(self):
+        # TODO
+        pass
 
 
 class TestRectButton:
-    pass
+    rectButtonText : str = "Rect"
+    rectButtonX : int = 50
+    rectButtonY : int = 50
+    rectButtonW : int = 100
+    rectButtonH : int = 30
+    rectButtonBgColor : Color = GREY
+
+    def getButton(self):
+        return RectButton(
+            self.rectButtonText,
+            self.rectButtonW,
+            self.rectButtonH,
+            self.rectButtonX,
+            self.rectButtonY,
+            self.rectButtonBgColor
+        )
+
+    def test_init(self):
+        # TODO
+        pass
+
+    def test_height(self):
+        button = self.getButton()
+        height = 56
+        button.setH(height)
+        assert button.getH() == height
+        assert button.getRect().h == height

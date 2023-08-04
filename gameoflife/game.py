@@ -146,10 +146,10 @@ class Game:
                             self._next = True
                         elif btnTxt == ButtonText.START:
                             self.start()
-                            button.setID(ButtonText.STOP)
+                            button.setText(ButtonText.STOP)
                         elif btnTxt == ButtonText.STOP:
                             self.stop()
-                            button.setID(ButtonText.START)
+                            button.setText(ButtonText.START)
                         elif btnTxt == ButtonText.PATTERNS:
                             self.patternsMenu.toggle()
                         elif btnTxt == ButtonText.RESET:
