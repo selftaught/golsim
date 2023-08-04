@@ -146,33 +146,23 @@ class RectButton(BaseButton):
         bgColor: Color = GREY,
     ) -> None:
         super().__init__(text, x, y, bgColor)
-        self.h: int = h
-        self.w: int = w
-        self.rect: Rect = Rect(x, y, w, h)
-
-    def getRect(self) -> Rect:
-        return self.rect
+        self.h = h
+        self.w = w
 
     def getH(self) -> int:
         return self.h
 
+    def getW(self) -> int:
+        return self.w
+
     def setH(self, h: int) -> None:
         self.h = h
-        self.rect.h = h
 
     def setW(self, w: int) -> None:
         self.w = w
 
-    def setX(self, x: int) -> None:
-        self.x = x
-        self.rect.x = x
-
-    def setY(self, y: int) -> None:
-        self.y = y
-        self.rect.y = y
-
     def draw(self, surface: Surface) -> None:
-        draw.rect(surface, self.currBgColor, self.rect)
+        draw.rect(surface, self.currBgColor, Rect(self.x, self.y, self.w, self.h))
         textImg = self.font.render(self.text, True, (255, 255, 255))
         fontSize = self.font.size(self.text)
         textX = self.x + ((self.w / 2) - (fontSize[0] / 2))

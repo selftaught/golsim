@@ -122,8 +122,7 @@ class TestCircleButton:
         assert button.getRadius() == radius
 
     def test_clicked(self):
-        # TODO
-        pass
+        pass # TODO
 
 
 class TestRectButton:
@@ -145,12 +144,25 @@ class TestRectButton:
         )
 
     def test_init(self):
-        # TODO
-        pass
+        button = self.getButton()
+        assert button.getText() == self.rectButtonText
+        assert button.getW() == self.rectButtonW
+        assert button.getH() == self.rectButtonH
+        assert button.getX() == self.rectButtonX
+        assert button.getY() == self.rectButtonY
+        assert button.getBackgroundColor() == self.rectButtonBgColor
 
     def test_height(self):
         button = self.getButton()
         height = 56
         button.setH(height)
         assert button.getH() == height
-        assert button.getRect().h == height
+
+    def test_width(self):
+        button = self.getButton()
+        width = 120
+        button.setW(width)
+        assert button.getW() == width
+
+    def test_clicked(self):
+        pass # TODO
