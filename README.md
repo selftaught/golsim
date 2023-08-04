@@ -1,4 +1,4 @@
-# Game of Life (pygame)
+# Game of Life
 
 A PyGame implementation of Conway's Game of Life
 
