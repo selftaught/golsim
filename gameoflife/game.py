@@ -2,19 +2,15 @@ import glob
 import pygame
 
 from pygame.font import Font
-from pygame.locals import KEYDOWN, MOUSEBUTTONUP, K_g, K_ESCAPE
+from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_ESCAPE
 from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1
+from gameoflife.constvars import *
 from gameoflife.config import Config
 from gameoflife.grid import Grid
 from gameoflife.button import RectButton, ButtonText
 from gameoflife.cell import *
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
-
-
-MOUSEBUTTONUP_LCLICK = 1
-MOUSEBUTTONUP_SCROLL_UP = 4
-MOUSEBUTTONUP_SCROLL_DOWN = 5
 
 class Game:
     def __init__(self) -> None:
@@ -46,7 +42,7 @@ class Game:
         self._reset = False
         self._running = True
         self._stopped = True
-        self.patternsMenu = PatternMenu(50, 50)
+        self.patternsMenu = PatternMenu(50, 50, maxHeight=400)
         self.patternsMenu.setFont(self.font)
         self.patterns = []
         self.patternSelected = None
@@ -54,14 +50,17 @@ class Game:
         self.cellsAlive = 0
         self.cellsBirthed = 0
         self.cellsDied = 0
+        self.mouseButtonHeldDown = False
 
         # Zoom
-        #self.zoom = 0
-        #self.zoomMax = None
-        #self.zoomMin = None
+        self.zoom = 1
+        self.zoomMax = 10
+        self.zoomMin = 1
+        self.zoomStep = 0.10
 
         self.loadAllPatterns()
         self.initButtons()
+
 
     def initButtons(self) -> None:
         btnHeight = 30
@@ -69,7 +68,7 @@ class Game:
         btnWidth = 100
 
         self.buttons = [
-            RectButton(ButtonText.RESET, btnWidth, btnHeight),
+            #RectButton(ButtonText.RESET, btnWidth, btnHeight),
             RectButton(ButtonText.CLEAR, btnWidth, btnHeight),
             RectButton(ButtonText.START, btnWidth, btnHeight),
             RectButton(ButtonText.NEXT, btnWidth, btnHeight),
@@ -107,7 +106,7 @@ class Game:
             'spaceships': PatternType.Spacehship,
             'flipflops': PatternType.FlipFlop,
             'methuselah': PatternType.Methuselah,
-            #'still-lifes': PatternType.StillLife
+            'still-lifes': PatternType.StillLife
         }
 
         widestPattern = None
@@ -121,8 +120,10 @@ class Game:
 
     def eventLoop(self) -> None:
         for event in pygame.event.get():
+            #print(event)
             handlerResp = self.patternsMenu.eventHandler(event)
             if handlerResp:
+                self.mouseButtonHeldDown = False
                 if isinstance(handlerResp, Pattern):
                     self.patternSelected = handlerResp
                     self.patternSelected.setCellHeight(self.cellHeight)
@@ -135,13 +136,22 @@ class Game:
                     self.patternSelected = None
                 if event.key == K_g:
                     self.grid.toggle()
-            elif event.type == MOUSEBUTTONUP and event.dict.get('button') == MOUSEBUTTONUP_LCLICK:
+            elif (event.type == MOUSEBUTTONUP and event.dict.get('button') == MOUSEBUTTON_LCLICK) or (self.mouseButtonHeldDown):
+                #print(event.dict)
+                if event.type == MOUSEBUTTONUP and self.mouseButtonHeldDown:
+                    print("mouseButtonHeldDown = False")
+                    self.mouseButtonHeldDown = False
                 (mX, mY) = pygame.mouse.get_pos()
                 for button in self.buttons:
                     if button.clicked(mX, mY):
                         btnTxt = button.getText()
                         if btnTxt == ButtonText.CLEAR:
                             self.clear()
+                            for b in self.buttons:
+                                if b.getText() == ButtonText.STOP:
+                                    b.setText(ButtonText.START)
+                                    self.stop()
+                                    break
                         elif btnTxt == ButtonText.NEXT:
                             self._next = True
                         elif btnTxt == ButtonText.START:
@@ -171,18 +181,19 @@ class Game:
                                         self.cells[nextCellY][nextCellX].setState(selectedCells[y][x].getState())
                         else:
                             cell = self.cells[cellY][cellX]
-                            cell.setState(
-                                CellState.DEAD
-                                if cell.getState() == CellState.ALIVE
-                                else CellState.ALIVE
-                            )
+                            cell.setState(CellState.ALIVE)
                     except Exception as e:
                         print(e)
+            elif event.type == MOUSEBUTTONDOWN and event.dict.get('button') == MOUSEBUTTON_LCLICK:
+                (mX, mY) = pygame.mouse.get_pos()
+                if mY < self.actionBarY:
+                    self.mouseButtonHeldDown = True
             elif event.type == MOUSEBUTTONUP:
                 buttonCode = event.dict.get('button')
-                if buttonCode in [MOUSEBUTTONUP_SCROLL_DOWN, MOUSEBUTTONUP_SCROLL_UP]:
-                    pass # TODO: zoom
-
+                if buttonCode == MOUSEBUTTON_SCROLL_DOWN and self.zoom >= self.zoomMin + self.zoomStep:
+                    self.zoom -= self.zoomStep
+                elif buttonCode == MOUSEBUTTON_SCROLL_UP and self.zoom < self.zoomMax - self.zoomStep:
+                    self.zoom += self.zoomStep
     def loop(self) -> None:
         while self.running():
             self.eventLoop()
@@ -301,6 +312,9 @@ class Game:
             textImg = self.font.render(stat, True, BLACK)
             self.screen.blit(textImg, (10, (y + 5) + ((fontSize[1] * 2) * statIdx)))
             statIdx += 1
+
+        zoomText = self.font.render("Zoom: {:.2f}".format(self.zoom), True, BLACK)
+        self.screen.blit(zoomText, (self.width - 100, self.actionBarY + 5))
 
     def clear(self) -> None:
         self._clear = True

@@ -1,7 +1,7 @@
 import pygame
 
 from gameoflife.colors import BLACK
-from pygame import draw
+from pygame import draw, Rect
 from pygame.surface import Surface
 
 
