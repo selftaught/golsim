@@ -30,86 +30,86 @@ class PatternType:
 
 class Pattern:
     def __init__(self, name: str, path: str, type: PatternType) -> None:
-        self.rows: list = 0
-        self.cols: list = 0
-        self.name: str = name
-        self.desc: str = ""  # TODO
-        self.path: str = path
-        self.type: PatternType = type
-        self.cells: List[List] = []
-        self.cellWidth = 10
-        self.cellHeight = 10
-        self.rowMaxLen = 0
-        self.bgColor = GREY_LIGHT1
+        self._rows: int = 0
+        self._cols: int = 0
+        self._name: str = name
+        self._desc: str = ""  # TODO
+        self._path: str = path
+        self._type: PatternType = type
+        self._cells: List[List] = []
+        self._cellWidth = 10
+        self._cellHeight = 10
+        self._bgColor = GREY_LIGHT1
         self._load()
 
     def _load(self):
-        with open(self.path) as file:
+        with open(self._path) as file:
             lines = [line.rstrip() for line in file]
-            self.rows = len(lines)
+            self._rows = len(lines)
             y = 0
+            longestRow = 0
             for line in lines:
-                if len(line) > self.rowMaxLen:
-                    self.rowMaxLen = len(line)
+                if len(line) > longestRow:
+                    longestRow = len(line)
                 row = []
                 x = 0
                 for char in line:
                     cellState = CellState.DEAD if char == "0" else CellState.ALIVE
-                    c = Cell(x, y, self.cellWidth, self.cellHeight, cellState)
+                    c = Cell(x, y, self._cellWidth, self._cellHeight, cellState)
                     row.append(c)
                     x += 1
-                self.cells.append(row)
+                self._cells.append(row)
                 y += 1
-            self.cols = self.rowMaxLen
+            self._cols = longestRow
 
     def getCells(self) -> List[List]:
-        return self.cells
+        return self._cells
 
     def getCols(self) -> int:
-        return self.cols
+        return self._cols
 
     def getHeight(self) -> int:
-        return self.cellHeight * len(self.cells)
+        return self._cellHeight * len(self._cells)
 
     def getName(self) -> str:
-        return self.name
+        return self._name
 
     def getRows(self) -> int:
-        return self.rows
+        return self._rows
 
     def getSurface(self) -> Surface:
-        width = self.rowMaxLen * self.cellWidth
-        height = len(self.cells) * self.cellHeight
+        width = self._cols * self._cellWidth
+        height = len(self._cells) * self._cellHeight
         surf = Surface((width, height)).convert_alpha()
-        surf.fill(self.bgColor)
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
+        surf.fill(self._bgColor)
+        for y in range(len(self._cells)):
+            for x in range(len(self._cells[y])):
+                cell = self._cells[y][x]
                 cell.draw(surf)
         return surf
 
     def getWidth(self) -> int:
-        return self.cellWidth * self.cols
+        return self._cellWidth * self._cols
 
     def setBgColor(self, color) -> None:
-        self.bgColor = color
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
+        self._bgColor = color
+        for y in range(len(self._cells)):
+            for x in range(len(self._cells[y])):
+                cell = self._cells[y][x]
                 cell.setStateColor(CellState.DEAD, color)
 
     def setCellHeight(self, height: int) -> None:
-        self.cellHeight = height
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
+        self._cellHeight = height
+        for y in range(len(self._cells)):
+            for x in range(len(self._cells[y])):
+                cell = self._cells[y][x]
                 cell.setHeight(height)
 
     def setCellWidth(self, width: int) -> None:
-        self.cellWidth = width
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
+        self._cellWidth = width
+        for y in range(len(self._cells)):
+            for x in range(len(self._cells[y])):
+                cell = self._cells[y][x]
                 cell.setHeight(width)
 
 
@@ -118,71 +118,61 @@ class PatternMenuRow:
         self,
         x: int,
         y: int,
-        menuX: int,
-        menuY: int,
+        absX: int,
+        absY: int,
         pattern: Pattern,
         bgColor: Color,
         borderColor: Color,
     ) -> None:
-        self.inactiveBgColor = bgColor
-        self.bgColor = self.inactiveBgColor
-        self.hoveredBgColor = GREY_LIGHT2
-        self.menuX: int = menuX
-        self.menuY: int = menuY
-        self.menuH: int = 0
-        self.scrollY: int = 0
-        self.pattern = pattern
-        self.pattern.setBgColor(self.bgColor)
-        self.padding = 0
-        self.h = self.pattern.getHeight() + (self.padding * 2)
-        self.x = x
-        self.y = y
-        self.w = 0
-        self.cursor = pygame.SYSTEM_CURSOR_ARROW
+        self._absX: int = absX
+        self._absY: int = absY
+        self._bgColor = bgColor
+        self._cursor = pygame.SYSTEM_CURSOR_ARROW
+        self._hoveredBgColor = GREY_LIGHT2
+        self._inactiveBgColor = bgColor
+        self._menuH: int = 0
+        self._padding = 0
+        self._pattern = pattern
+        self._pattern.setBgColor(self._bgColor)
+        self._rect = Rect(x, y, 0, self._pattern.getHeight() + (self._padding * 2))
+        self._scrollY: int = 0
 
     def update(self) -> None:
         if self.hovered():
-            self.bgColor = self.hoveredBgColor
-            self.cursor = pygame.SYSTEM_CURSOR_HAND
-            pygame.mouse.set_cursor(self.cursor)
+            self._bgColor = self._hoveredBgColor
+            self._cursor = pygame.SYSTEM_CURSOR_HAND
+            pygame.mouse.set_cursor(self._cursor)
         else:
-            if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
-                self.cursor = pygame.SYSTEM_CURSOR_ARROW
-                pygame.mouse.set_cursor(self.cursor)
-            self.bgColor = self.inactiveBgColor
-        self.pattern.setBgColor(self.bgColor)
+            if self._cursor != pygame.SYSTEM_CURSOR_ARROW:
+                self._cursor = pygame.SYSTEM_CURSOR_ARROW
+                pygame.mouse.set_cursor(self._cursor)
+            self._bgColor = self._inactiveBgColor
+        self._pattern.setBgColor(self._bgColor)
 
     def draw(self, screen: Surface) -> None:
-        surf = Surface((self.w, self.h))
-        surf.fill(self.bgColor)
-        surf.blit(self.pattern.getSurface(), (self.padding, self.padding))
-        screen.blit(surf, (self.x, self.y))
-        drawRectBorder(
-            screen,
-            self.x,
-            self.y,
-            self.w,
-            self.h,
-            GREY_DARK1,
-        )
+        surf = Surface((self._rect.w, self._rect.h))
+        surf.fill(self._bgColor)
+        surf.blit(self._pattern.getSurface(), (self._padding, self._padding))
+        screen.blit(surf, (self._rect.x, self._rect.y))
+        drawRectBorder(screen, self._rect, GREY_DARK1)
 
     def getHeight(self) -> int:
-        return self.h
+        return self._rect.height
 
     def getPattern(self) -> Pattern:
-        return self.pattern
+        return self._pattern
 
     def setMenuHeight(self, height:int) -> None:
-        self.menuH = height
+        self._menuH = height
 
     def setWidth(self, width:int) -> None:
-        self.w = width + (self.padding * 2)
+        self._rect.width = width + (self._padding * 2)
 
     def hovered(self) -> bool:
         (mX, mY) = pygame.mouse.get_pos()
-        if mY >= self.menuY and mY <= self.menuY + self.menuH:
-            if (mX >= self.menuX + self.x and mX <= self.menuX + self.x + self.w) and (
-                mY >= self.menuY + self.y - self.scrollY and mY <= self.menuY + self.y + self.h - self.scrollY
+        if mY >= self._absY and mY <= self._absY + self._menuH:
+            if (mX >= self._absX + self._rect.x and mX <= self._absX + self._rect.x + self._rect.width) and (
+                mY >= self._absY + self._rect.y - self._scrollY and mY <= self._absY + self._rect.y + self._rect.height - self._scrollY
             ):
                 return True
         return False
@@ -195,27 +185,26 @@ class PatternMenuRow:
     def eventHandler(self) -> Union[None, Pattern]:
         pass
 
+# TODO
+class PatternMenuScrollBar:
+    def __init__(self) -> None:
+        pass
 
 class PatternMenu:
     def __init__(self, x: int, y: int, maxHeight:int=None) -> None:
-        self.padding = 12
-        self.x: int = x
-        self.y: int = y
-        self.w: int = 0
-        self.maxHeight: Union[int, None] = maxHeight
-        self.font = None
-        self.bgColor = GREY_LIGHT1
-        self.closeBtn = CircleButton("X", self.x + self.w, self.y, 10, RED_LIGHT1)
-        self.closeBtn.setHoverBackgroundColor(RED)
+        self._padding = 12
+        self._maxHeight: Union[int, None] = maxHeight
+        self._font = None
+        self._bgColor = GREY_LIGHT1
+        self._closeBtn = CircleButton("X", x, y, 10, RED_LIGHT1)
+        self._closeBtn.setHoverBackgroundColor(RED)
         self._enabled = False
-        self.rows = []
-
-        self.innerSurface = None # Initialized after patterns are set. We don't know the height until then
-
-        # Scroll bar
+        self._rect = Rect(x, y, 0, 0)
+        self._rows = []
+        self.innerSurface = None
         self.scrollBarEnabled = True
         self.scrollBarWidth = 15
-        self.scrollBarHeight = 30 # TBD.. depends on the inner scrollable content height
+        self.scrollBarHeight = None
         self.scrollBarColor = GREY_DARK1
         self.scrollBarRect = None
         self.scrollBarRatio = 1
@@ -233,148 +222,147 @@ class PatternMenu:
         self._enabled = not self._enabled
 
     def setFont(self, font: Font) -> None:
-        self.font = font
-        self.closeBtn.setFont(font)
+        self._font = font
+        self._closeBtn.setFont(font)
 
     def setMaxHeight(self, height:int) -> None:
-        self.maxHeight = height
+        self._maxHeight = height
+        if self._maxHeight > self._rect.height:
+            self._rect.height = self._maxHeight
 
     def setPatterns(self, patterns: List[Pattern]) -> None:
-        self.patterns = patterns
-        self.rows.clear()
-        yOffset = self.padding
+        self._patterns = patterns
+        self._rows.clear()
+        yOffset = self._padding
         widest = None
         for pattern in patterns:
             patternWidth = pattern.getWidth()
             if widest is None or patternWidth > widest:
                 widest = patternWidth
-            pattern.setBgColor(self.bgColor)
+            pattern.setBgColor(self._bgColor)
             row = PatternMenuRow(
-                self.padding,
+                self._padding,
                 yOffset,
-                self.x,
-                self.y,
+                self._rect.x,
+                self._rect.y,
                 pattern,
-                self.bgColor,
+                self._bgColor,
                 BLACK,
             )
-            self.rows.append(row)
-            yOffset += row.getHeight() + self.padding
+            self._rows.append(row)
+            yOffset += row.getHeight() + self._padding
 
-        innerHeight = yOffset - self.padding
+        innerHeight = yOffset - self._padding
         outerHeight = self.getHeight()
 
-        for row in self.rows:
+        self._rect.w = widest + (self._padding * 2)
+        self._rect.h = outerHeight
+
+        for row in self._rows:
             row.setWidth(widest)
             row.setMenuHeight(outerHeight)
 
-        self.w = widest + (self.padding * 2)
-
         if self.scrollBarEnabled:
-            self.w += self.scrollBarWidth
+            self._rect.w += self.scrollBarWidth
 
-        self.closeBtn.setX(self.x + self.w)
+        self._closeBtn.setX(self._rect.x + self._rect.w)
 
-        self.innerSurface = Surface((widest + (self.padding * 2), yOffset))
-        self.innerSurface.fill(self.bgColor)
+        self.innerSurface = Surface((widest + (self._padding * 2), yOffset))
+        self.innerSurface.fill(self._bgColor)
 
         self.scrollBarHeight = (outerHeight / innerHeight) * outerHeight
         self.scrollBarRatio = innerHeight / outerHeight
-        self.scrollBarRect = Rect(self.x + (self.w - self.scrollBarWidth), self.y, self.scrollBarWidth, self.scrollBarHeight)
+        self.scrollBarRect = Rect(self._rect.x + (self._rect.w - self.scrollBarWidth), self._rect.y, self.scrollBarWidth, self.scrollBarHeight)
 
     def getHeight(self) -> int:
-        height = self.padding
-        for row in self.rows:
-            height += row.getHeight() + self.padding
-        if self.maxHeight and height > self.maxHeight:
-            return self.maxHeight
+        height = self._padding
+        for row in self._rows:
+            height += row.getHeight() + self._padding
+        if self._maxHeight and height > self._maxHeight:
+            return self._maxHeight
         return height
 
     def update(self) -> None:
-        if self.enabled():
-            self.closeBtn.update()
-            for row in self.rows:
-                row.update()
+        self._closeBtn.update()
+        for row in self._rows:
+            row.update()
 
     def eventHandler(self, event) -> bool:
-        if self.enabled():
-            sbHalfHeight = self.scrollBarRect.height / 2
-            menuHeight = self.getHeight()
-            buttonCode = event.dict.get('button')
-            (mX, mY) = pygame.mouse.get_pos()
-            if buttonCode == MOUSEBUTTON_LCLICK:
-                if self.closeBtn.clicked(mX, mY):
-                    self._enabled = False
-                    return True
-                # Scrollbar mouse event
-                # If the mouse pos is in the scrollbar area
-                elif (mX >= self.x + self.w - self.scrollBarRect.width) and (mX <= self.x + self.w):
-                    # If the mouse pos is somewhere in the middle with padding of 1/2 the scrollbars height on top / bottom.
-                    # Boundary check is needed to prevent the scrollbar from running past the top of the menu.
-                    if (mY >= self.y + sbHalfHeight and mY <= self.y + (menuHeight - sbHalfHeight)):
-                        # Center the scrollbar to mouse y since we know there's more than half the scrollbars height worth of room above / below.
-                        self.scrollBarRect.y = mY - self.scrollBarRect.height / 2
-                    # If there's not enough room, is the mouse y pos at the top?
-                    elif mY >= self.y and mY <= self.y + sbHalfHeight:
-                        # Set the top of the scrollbar to the mouse y pos.
-                        self.scrollBarRect.y = mY
-                    # If not the top then bottom?
-                    elif (mY >= self.y + menuHeight - sbHalfHeight) and mY <= self.y + menuHeight:
-                        # set the bottom of the scrollbar to the mouse y pos
-                        self.scrollBarRect.y = mY - self.scrollBarRect.height
-                    return True
-                else:
-                    for row in self.rows:
-                        if row.clicked(event):
-                            return row.getPattern()
-                if (mX >= self.x and mX <= self.x + self.w) and (
-                    mY >= self.y and mY <= self.y + self.getHeight()
-                ):
-                    return True
-            # Scrollbar mouse scrolling
-            elif buttonCode in [MOUSEBUTTON_SCROLL_UP, MOUSEBUTTON_SCROLL_DOWN]:
-                scrollStep = 5
-                if buttonCode == MOUSEBUTTON_SCROLL_DOWN:
-                    scrollBarBottom = self.scrollBarRect.y + self.scrollBarRect.h
-                    menuBottom = self.y + menuHeight
-                    if scrollBarBottom <= menuBottom - scrollStep:
-                        self.scrollBarRect.y += scrollStep
-                        for row in self.rows:
-                            row.scrollY += scrollStep * self.scrollBarRatio
-                    elif scrollBarBottom < menuBottom:
-                        rem = menuBottom - scrollBarBottom
-                        if rem < scrollStep:
-                            self.scrollBarRect.y = menuBottom - self.scrollBarRect.height
-                elif buttonCode == MOUSEBUTTON_SCROLL_UP:
-                    scrollBarTop = self.scrollBarRect.y
-                    if self.scrollBarRect.y >= self.y + scrollStep:
-                        self.scrollBarRect.y -= scrollStep
-                        for row in self.rows:
-                            row.scrollY -= scrollStep * self.scrollBarRatio
-                    elif self.scrollBarRect.y > self.y:
-                        self.scrollBarRect.y = self.y
+        sbHalfHeight = self.scrollBarRect.height / 2
+        menuHeight = self.getHeight()
+        buttonCode = event.dict.get('button')
+        (mX, mY) = pygame.mouse.get_pos()
+        (x, y, w, h) = (self._rect.x, self._rect.y, self._rect.width, self._rect.height)
+        if buttonCode == MOUSEBUTTON_LCLICK:
+            if self._closeBtn.clicked(mX, mY):
+                self.disable()
                 return True
+            # Scrollbar mouse event
+            # If the mouse pos is in the scrollbar area
+            elif (mX >= x + w - self.scrollBarRect.width) and (mX <= x + w):
+                # If the mouse pos is somewhere in the middle with padding of 1/2 the scrollbars height on top / bottom.
+                # Boundary check is needed to prevent the scrollbar from running past the top of the menu.
+                if (mY >= y + sbHalfHeight and mY <= y + (menuHeight - sbHalfHeight)):
+                    # Center the scrollbar to mouse y since we know there's more than half the scrollbars height worth of room above / below.
+                    self.scrollBarRect.y = mY - self.scrollBarRect.height / 2
+                # If there's not enough room, is the mouse y pos at the top?
+                elif mY >= y and mY <= y + sbHalfHeight:
+                    # Set the top of the scrollbar to the mouse y pos.
+                    self.scrollBarRect.y = mY
+                # If not the top then bottom?
+                elif (mY >= y + menuHeight - sbHalfHeight) and mY <= y + menuHeight:
+                    # set the bottom of the scrollbar to the mouse y pos
+                    self.scrollBarRect.y = mY - self.scrollBarRect.height
+                return True
+            else:
+                for row in self._rows:
+                    if row.clicked(event):
+                        return row.getPattern()
+            if (mX >= x and mX <= x + w) and (
+                mY >= y and mY <= y + h
+            ):
+                return True
+        # Scrollbar mouse scrolling
+        elif buttonCode in [MOUSEBUTTON_SCROLL_UP, MOUSEBUTTON_SCROLL_DOWN]:
+            scrollStep = 5
+            if buttonCode == MOUSEBUTTON_SCROLL_DOWN:
+                scrollBarBottom = self.scrollBarRect.y + self.scrollBarRect.h
+                menuBottom = y + menuHeight
+                if scrollBarBottom <= menuBottom - scrollStep:
+                    self.scrollBarRect.y += scrollStep
+                    for row in self._rows:
+                        row.scrollY += scrollStep * self.scrollBarRatio
+                elif scrollBarBottom < menuBottom:
+                    rem = menuBottom - scrollBarBottom
+                    if rem < scrollStep:
+                        self.scrollBarRect.y = menuBottom - self.scrollBarRect.height
+            elif buttonCode == MOUSEBUTTON_SCROLL_UP:
+                scrollBarTop = self.scrollBarRect.y
+                if self.scrollBarRect.y >= y + scrollStep:
+                    self.scrollBarRect.y -= scrollStep
+                    for row in self._rows:
+                        row.scrollY -= scrollStep * self.scrollBarRatio
+                elif self.scrollBarRect.y > y:
+                    self.scrollBarRect.y = y
+            return True
         return False
 
     def draw(self, screen: Surface) -> None:
-        if self.enabled():
-            height = self.getHeight()
-            rect = Rect(self.x, self.y, self.w, height)
-            draw.rect(screen, self.bgColor, rect)
+        draw.rect(screen, self._bgColor, self._rect)
 
-            for row in self.rows:
-                row.draw(self.innerSurface)
+        for row in self._rows:
+            row.draw(self.innerSurface)
 
-            innerArea = Rect(0, (self.scrollBarRect.y - self.y) * self.scrollBarRatio, self.innerSurface.get_size()[0], self.getHeight())
+        innerArea = Rect(0, (self.scrollBarRect.y - self._rect.y) * self.scrollBarRatio, self.innerSurface.get_size()[0], self.getHeight())
 
-            screen.blit(self.innerSurface, (self.x, self.y), innerArea)
+        screen.blit(self.innerSurface, (self._rect.x, self._rect.y), innerArea)
 
-            drawRectBorder(screen, self.x, self.y, self.w, height)
+        drawRectBorder(screen, self._rect)
 
-            if self.scrollBarEnabled:
-                lineStartPos = (self.scrollBarRect.x, self.y)
-                lineEndPos = (self.scrollBarRect.x, self.y + height)
-                draw.rect(screen, self.scrollBarColor, self.scrollBarRect)
-                draw.line(screen, BLACK, lineStartPos, lineEndPos)
+        if self.scrollBarEnabled:
+            lineStartPos = (self.scrollBarRect.x, self._rect.y)
+            lineEndPos = (self.scrollBarRect.x, self._rect.y + self._rect.height)
+            draw.rect(screen, self.scrollBarColor, self.scrollBarRect)
+            draw.line(screen, BLACK, lineStartPos, lineEndPos)
 
-            self.closeBtn.draw(screen)
+        self._closeBtn.draw(screen)

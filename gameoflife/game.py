@@ -112,14 +112,15 @@ class Game:
     def eventLoop(self) -> None:
         for event in pygame.event.get():
             #print(event)
-            handlerResp = self.patternsMenu.eventHandler(event)
-            if handlerResp:
-                self.mouseButtonHeldDown = False
-                if isinstance(handlerResp, Pattern):
-                    self.patternSelected = handlerResp
-                    self.patternSelected.setCellHeight(self.cellHeight)
-                    self.patternSelected.setCellWidth(self.cellWidth)
-                return
+            if self.patternsMenu.enabled():
+                handlerResp = self.patternsMenu.eventHandler(event)
+                if handlerResp:
+                    self.mouseButtonHeldDown = False
+                    if isinstance(handlerResp, Pattern):
+                        self.patternSelected = handlerResp
+                        self.patternSelected.setCellHeight(self.cellHeight)
+                        self.patternSelected.setCellWidth(self.cellWidth)
+                    return
             if event.type == pygame.QUIT:
                 self.quit()
             if event.type == KEYDOWN:
@@ -211,7 +212,8 @@ class Game:
         for button in self.buttons:
             button.update()
 
-        self.patternsMenu.update()
+        if self.patternsMenu.enabled():
+            self.patternsMenu.update()
 
         if not self.stopped() or self.next():
             self.generation += 1
@@ -271,7 +273,9 @@ class Game:
 
         self.grid.draw(self.screen)
         self.drawActionBar()
-        self.patternsMenu.draw(self.screen)
+
+        if self.patternsMenu.enabled():
+            self.patternsMenu.draw(self.screen)
 
         if self.patternSelected and pygame.mouse.get_pos()[1] < self.actionBarY:
             patternSurf = self.patternSelected.getSurface()

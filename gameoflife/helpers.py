@@ -6,9 +6,9 @@ from pygame.surface import Surface
 
 
 def drawRectBorder(
-    screen: Surface, x: int, y: int, w: int, h: int, color=BLACK
+    screen: Surface, r:Rect, color=BLACK
 ) -> None:
-    draw.line(screen, color, (x, y), (x + w, y))  # top
-    draw.line(screen, color, (x, y), (x, y + h))
-    draw.line(screen, color, (x + w, y), (x + w, y + h))
-    draw.line(screen, color, (x, y + h), (x + w, y + h))
+    draw.line(screen, color, (r.x, r.y), (r.x + r.w, r.y))
+    draw.line(screen, color, (r.x, r.y), (r.x, r.y + r.h))
+    draw.line(screen, color, (r.x + r.w, r.y), (r.x + r.w, r.y + r.h))
+    draw.line(screen, color, (r.x, r.y + r.h), (r.x + r.w, r.y + r.h))
