@@ -89,16 +89,11 @@ class Game:
             button.setY(buttonY)
             buttonX += btnWidth + btnMargin
 
-    def loadPatterns(self, path:str, patternType:PatternType) -> Pattern:
-        widestPattern = None
+    def loadPatterns(self, path:str, patternType:PatternType):
         for p in glob.glob(path):
             pattern = Pattern(path.split("/")[-1], p, patternType)
             if pattern.getRows():
                 self.patterns.append(pattern)
-                patternWidth = pattern.getWidth()
-                if widestPattern is None or patternWidth > widestPattern.getWidth():
-                    widestPattern = pattern
-        return widestPattern
 
     def loadAllPatterns(self) -> None:
         patternDirTypes = {
@@ -109,13 +104,9 @@ class Game:
             'still-lifes': PatternType.StillLife
         }
 
-        widestPattern = None
         for patternDir, patternType in patternDirTypes.items():
-            pattern = self.loadPatterns(f"patterns/{patternDir}/*", patternType)
-            if widestPattern is None or pattern.getWidth() > widestPattern.getWidth():
-                widestPattern = pattern
+            self.loadPatterns(f"patterns/{patternDir}/*", patternType)
 
-        self.patternsMenu.setPatternRowWidth(widestPattern.getWidth())
         self.patternsMenu.setPatterns(self.patterns)
 
     def eventLoop(self) -> None:

@@ -118,7 +118,6 @@ class PatternMenuRow:
         self,
         x: int,
         y: int,
-        w: int,
         menuX: int,
         menuY: int,
         pattern: Pattern,
@@ -130,6 +129,7 @@ class PatternMenuRow:
         self.hoveredBgColor = GREY_LIGHT2
         self.menuX: int = menuX
         self.menuY: int = menuY
+        self.menuH: int = 0
         self.scrollY: int = 0
         self.pattern = pattern
         self.pattern.setBgColor(self.bgColor)
@@ -137,7 +137,7 @@ class PatternMenuRow:
         self.h = self.pattern.getHeight() + (self.padding * 2)
         self.x = x
         self.y = y
-        self.w = w + (self.padding * 2)
+        self.w = 0
         self.cursor = pygame.SYSTEM_CURSOR_ARROW
 
     def update(self) -> None:
@@ -172,18 +172,28 @@ class PatternMenuRow:
     def getPattern(self) -> Pattern:
         return self.pattern
 
+    def setMenuHeight(self, height:int) -> None:
+        self.menuH = height
+
+    def setWidth(self, width:int) -> None:
+        self.w = width + (self.padding * 2)
+
     def hovered(self) -> bool:
         (mX, mY) = pygame.mouse.get_pos()
-        if (mX >= self.menuX + self.x and mX <= self.menuX + self.x + self.w) and (
-            mY >= self.menuY + self.y - self.scrollY and mY <= self.menuY + self.y + self.h - self.scrollY
-        ):
-            return True
+        if mY >= self.menuY and mY <= self.menuY + self.menuH:
+            if (mX >= self.menuX + self.x and mX <= self.menuX + self.x + self.w) and (
+                mY >= self.menuY + self.y - self.scrollY and mY <= self.menuY + self.y + self.h - self.scrollY
+            ):
+                return True
         return False
 
     def clicked(self, event) -> bool:
         if event.type == MOUSEBUTTONUP and self.hovered():
             return True
         return False
+
+    def eventHandler(self) -> Union[None, Pattern]:
+        pass
 
 
 class PatternMenu:
@@ -192,7 +202,6 @@ class PatternMenu:
         self.x: int = x
         self.y: int = y
         self.w: int = 0
-        self.rowWidth: int = 0
         self.maxHeight: Union[int, None] = maxHeight
         self.font = None
         self.bgColor = GREY_LIGHT1
@@ -243,7 +252,6 @@ class PatternMenu:
             row = PatternMenuRow(
                 self.padding,
                 yOffset,
-                self.rowWidth,
                 self.x,
                 self.y,
                 pattern,
@@ -253,8 +261,19 @@ class PatternMenu:
             self.rows.append(row)
             yOffset += row.getHeight() + self.padding
 
-        outerHeight = self.getHeight()
         innerHeight = yOffset - self.padding
+        outerHeight = self.getHeight()
+
+        for row in self.rows:
+            row.setWidth(widest)
+            row.setMenuHeight(outerHeight)
+
+        self.w = widest + (self.padding * 2)
+
+        if self.scrollBarEnabled:
+            self.w += self.scrollBarWidth
+
+        self.closeBtn.setX(self.x + self.w)
 
         self.innerSurface = Surface((widest + (self.padding * 2), yOffset))
         self.innerSurface.fill(self.bgColor)
@@ -262,17 +281,6 @@ class PatternMenu:
         self.scrollBarHeight = (outerHeight / innerHeight) * outerHeight
         self.scrollBarRatio = innerHeight / outerHeight
         self.scrollBarRect = Rect(self.x + (self.w - self.scrollBarWidth), self.y, self.scrollBarWidth, self.scrollBarHeight)
-
-        print(f'scrollBarHeight: {self.scrollBarHeight}')
-        print(f'scrollBarRatio: {self.scrollBarRatio}')
-        print(f'innerHeight: {innerHeight}, outerHeight: {outerHeight}')
-
-    def setPatternRowWidth(self, patternRowWidth:int) -> None:
-        self.w = patternRowWidth + (self.padding * 2)
-        if self.scrollBarEnabled:
-            self.w += self.scrollBarWidth
-        self.rowWidth = patternRowWidth
-        self.closeBtn.setX(self.x + self.w)
 
     def getHeight(self) -> int:
         height = self.padding
@@ -296,7 +304,6 @@ class PatternMenu:
             (mX, mY) = pygame.mouse.get_pos()
             if buttonCode == MOUSEBUTTON_LCLICK:
                 if self.closeBtn.clicked(mX, mY):
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                     self._enabled = False
                     return True
                 # Scrollbar mouse event
@@ -309,10 +316,9 @@ class PatternMenu:
                         self.scrollBarRect.y = mY - self.scrollBarRect.height / 2
                     # If there's not enough room, is the mouse y pos at the top?
                     elif mY >= self.y and mY <= self.y + sbHalfHeight:
-                        # Don't center the scrollbar this time. It will overflow if centered. Set the top of the
-                        # scrollbar to the mouse y pos.
+                        # Set the top of the scrollbar to the mouse y pos.
                         self.scrollBarRect.y = mY
-                    # If not the top then must be the bottom
+                    # If not the top then bottom?
                     elif (mY >= self.y + menuHeight - sbHalfHeight) and mY <= self.y + menuHeight:
                         # set the bottom of the scrollbar to the mouse y pos
                         self.scrollBarRect.y = mY - self.scrollBarRect.height
@@ -325,7 +331,7 @@ class PatternMenu:
                     mY >= self.y and mY <= self.y + self.getHeight()
                 ):
                     return True
-            # Scrollbar mouse wheel event
+            # Scrollbar mouse scrolling
             elif buttonCode in [MOUSEBUTTON_SCROLL_UP, MOUSEBUTTON_SCROLL_DOWN]:
                 scrollStep = 5
                 if buttonCode == MOUSEBUTTON_SCROLL_DOWN:
@@ -334,8 +340,7 @@ class PatternMenu:
                     if scrollBarBottom <= menuBottom - scrollStep:
                         self.scrollBarRect.y += scrollStep
                         for row in self.rows:
-                            row.scrollY += scrollStep * self.scrollBarRatio # TODO: create getting and setter member function in patternmenurow to update scrollx instead of directly.
-                            print(row.scrollY)
+                            row.scrollY += scrollStep * self.scrollBarRatio
                     elif scrollBarBottom < menuBottom:
                         rem = menuBottom - scrollBarBottom
                         if rem < scrollStep:
@@ -345,8 +350,7 @@ class PatternMenu:
                     if self.scrollBarRect.y >= self.y + scrollStep:
                         self.scrollBarRect.y -= scrollStep
                         for row in self.rows:
-                            row.scrollY -= scrollStep * self.scrollBarRatio # TODO: create getting and setter member function in patternmenurow to update scrollx instead of directly.
-                            print(row.scrollY)
+                            row.scrollY -= scrollStep * self.scrollBarRatio
                     elif self.scrollBarRect.y > self.y:
                         self.scrollBarRect.y = self.y
                 return True
@@ -361,12 +365,9 @@ class PatternMenu:
             for row in self.rows:
                 row.draw(self.innerSurface)
 
-            innerBlitY = (self.scrollBarRect.y - self.y) * self.scrollBarRatio
+            innerArea = Rect(0, (self.scrollBarRect.y - self.y) * self.scrollBarRatio, self.innerSurface.get_size()[0], self.getHeight())
 
-            if self.scrollBarRect.y + self.scrollBarRect.height == self.y + self.getHeight():
-                innerBlitY += self.padding
-
-            screen.blit(self.innerSurface, (self.x, self.y), Rect(0, innerBlitY, self.innerSurface.get_size()[0], self.getHeight()))
+            screen.blit(self.innerSurface, (self.x, self.y), innerArea)
 
             drawRectBorder(screen, self.x, self.y, self.w, height)
 
