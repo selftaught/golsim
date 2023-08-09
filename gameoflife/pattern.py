@@ -1,3 +1,4 @@
+import json
 import pygame
 
 from gameoflife.button import CircleButton
@@ -43,24 +44,29 @@ class Pattern:
         self._load()
 
     def _load(self):
-        with open(self._path) as file:
-            lines = [line.rstrip() for line in file]
-            self._rows = len(lines)
-            y = 0
-            longestRow = 0
-            for line in lines:
-                if len(line) > longestRow:
-                    longestRow = len(line)
-                row = []
-                x = 0
-                for char in line:
-                    cellState = CellState.DEAD if char == "0" else CellState.ALIVE
-                    c = Cell(x, y, self._cellWidth, self._cellHeight, cellState)
-                    row.append(c)
-                    x += 1
-                self._cells.append(row)
-                y += 1
-            self._cols = longestRow
+        try:
+            with open(self._path) as file:
+                data = json.load(file)
+                seed = data.get('seed', [])
+
+                self._rows = len(seed)
+                y = 0
+                longestRow = 0
+                for line in seed:
+                    if len(line) > longestRow:
+                        longestRow = len(line)
+                    row = []
+                    x = 0
+                    for char in line:
+                        cellState = CellState.DEAD if char == "0" else CellState.ALIVE
+                        c = Cell(x, y, self._cellWidth, self._cellHeight, cellState)
+                        row.append(c)
+                        x += 1
+                    self._cells.append(row)
+                    y += 1
+                self._cols = longestRow
+        except Exception as e:
+            print(e)
 
     def getCells(self) -> List[List]:
         return self._cells
@@ -191,10 +197,10 @@ class PatternMenuScrollBar:
         pass
 
 class PatternMenu:
-    def __init__(self, x: int, y: int, maxHeight:int=None) -> None:
+    def __init__(self, x: int, y: int, maxHeight:int=None, font:Font=None) -> None:
         self._padding = 12
         self._maxHeight: Union[int, None] = maxHeight
-        self._font = None
+        self._font = font
         self._bgColor = GREY_LIGHT1
         self._closeBtn = CircleButton("X", x, y, 10, RED_LIGHT1)
         self._closeBtn.setHoverBackgroundColor(RED)
@@ -291,10 +297,10 @@ class PatternMenu:
     def eventHandler(self, event) -> bool:
         sbHalfHeight = self._scrollBarRect.height / 2
         menuHeight = self.getHeight()
-        buttonCode = event.dict.get('button')
+        button = event.dict.get('button')
         (mX, mY) = pygame.mouse.get_pos()
         (x, y, w, h) = (self._rect.x, self._rect.y, self._rect.width, self._rect.height)
-        if buttonCode == MOUSEBUTTON_LCLICK:
+        if button == MOUSEBUTTON_LCLICK:
             if self._closeBtn.clicked(mX, mY):
                 self.disable()
                 return True
@@ -319,14 +325,12 @@ class PatternMenu:
                 for row in self._rows:
                     if row.clicked(event):
                         return row.getPattern()
-            if (mX >= x and mX <= x + w) and (
-                mY >= y and mY <= y + h
-            ):
+            if (mX >= x and mX <= x + w) and (mY >= y and mY <= y + h):
                 return True
         # Scrollbar mouse scrolling
-        elif buttonCode in [MOUSEBUTTON_SCROLL_UP, MOUSEBUTTON_SCROLL_DOWN]:
+        elif button in [MOUSEBUTTON_SCROLL_UP, MOUSEBUTTON_SCROLL_DOWN]:
             scrollStep = 5
-            if buttonCode == MOUSEBUTTON_SCROLL_DOWN:
+            if button == MOUSEBUTTON_SCROLL_DOWN:
                 scrollBarBottom = self._scrollBarRect.y + self._scrollBarRect.h
                 menuBottom = y + menuHeight
                 if scrollBarBottom <= menuBottom - scrollStep:
@@ -337,7 +341,7 @@ class PatternMenu:
                     rem = menuBottom - scrollBarBottom
                     if rem < scrollStep:
                         self._scrollBarRect.y = menuBottom - self._scrollBarRect.height
-            elif buttonCode == MOUSEBUTTON_SCROLL_UP:
+            elif button == MOUSEBUTTON_SCROLL_UP:
                 scrollBarTop = self._scrollBarRect.y
                 if self._scrollBarRect.y >= y + scrollStep:
                     self._scrollBarRect.y -= scrollStep

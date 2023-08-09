@@ -1,3 +1,13 @@
-110
-101
-010
+{
+    "name": "boat",
+    "type": "strict-still-life",
+    "discovered": {
+        "by": "John Conway",
+        "year": 1969
+    },
+    "seed": [
+        "010",
+        "101",
+        "110"
+    ]
+}

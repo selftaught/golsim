@@ -1,1 +1,13 @@
-1111111111
+{
+    "name": "pentadecathlon",
+    "period": 15,
+    "type": "oscillator",
+    "configuration": null,
+    "discovered": {
+        "by": "John Conway",
+        "year": 1970
+    },
+    "seed": [
+        "1111111111"
+    ]
+}

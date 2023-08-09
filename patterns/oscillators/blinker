@@ -1,1 +1,13 @@
-111
+{
+    "name": "blinker",
+    "period": 2,
+    "type": "oscillator",
+    "configuration": "muttering-moat",
+    "discovered": {
+        "by": "John Conway",
+        "year": 1969
+    },
+    "seed": [
+        "111"
+    ]
+}

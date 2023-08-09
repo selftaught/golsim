@@ -1,3 +1,15 @@
-010
-011
-101
+{
+    "name": "glider",
+    "period": 4,
+    "type": "spaceship",
+    "direction": "diagnol",
+    "discovered": {
+        "by": "Richard K. Guy",
+        "year": 1969
+    },
+    "seed": [
+        "010",
+        "011",
+        "101"
+    ]
+}

@@ -89,7 +89,7 @@ class Game:
             button.setY(buttonY)
             buttonX += btnWidth + btnMargin
 
-    def loadPatterns(self, path:str, patternType:PatternType):
+    def loadPatterns(self, path:str, patternType:PatternType) -> None:
         for p in glob.glob(path):
             pattern = Pattern(path.split("/")[-1], p, patternType)
             if pattern.getRows():
@@ -129,9 +129,7 @@ class Game:
                 if event.key == K_g:
                     self.grid.toggle()
             elif (event.type == MOUSEBUTTONUP and event.dict.get('button') == MOUSEBUTTON_LCLICK) or (self.mouseButtonHeldDown):
-                #print(event.dict)
                 if event.type == MOUSEBUTTONUP and self.mouseButtonHeldDown:
-                    print("mouseButtonHeldDown = False")
                     self.mouseButtonHeldDown = False
                 (mX, mY) = pygame.mouse.get_pos()
                 for button in self.buttons:
@@ -164,7 +162,7 @@ class Game:
                     cellY = int(mY / self.cellHeight)
                     try:
                         if self.patternSelected:
-                            selectedCells = self.patternSdelected.getCells()
+                            selectedCells = self.patternSelected.getCells()
                             for y in range(len(selectedCells)):
                                 for x in range(len(selectedCells[y])):
                                     nextCellX = cellX + x

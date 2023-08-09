@@ -1,2 +1,12 @@
-11
-11
+{
+    "name": "block",
+    "type": "strict-still-life",
+    "discovered": {
+        "by": "John Conway",
+        "year": 1969
+    },
+    "seed": [
+        "11",
+        "11"
+    ]
+}
