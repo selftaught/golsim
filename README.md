@@ -1,7 +1,5 @@
-# Game of life clone
-## Intro
 
-This is yet another Game of Life clone, developed using the [pygame library](https://github.com/pygame/pygame). This project was started out of boredom, an interest play around with pygame / cellular automata. It's a WIP and has limited functionality with limited patterns available. The existing open source software [Golly](https://github.com/jimblandy/golly) is the recommended software for simulating Conway's Game of Life, as well as the [simulator](https://conwaylife.com/) on the official website.
+Yet another Game of Life clone, developed using the python [pygame library](https://github.com/pygame/pygame). This project was started out of boredom and an interest to play around with pygame and cellular automata. It's a WIP and has limited functionality with limited patterns available. The existing open source software [Golly](https://github.com/jimblandy/golly) is the recommended software for simulating Conway's Game of Life, as well as the [simulator](https://conwaylife.com/) on the official website.
 
 [![Build Status](https://app.travis-ci.com/selftaught/GameOfLife.svg?token=Tx7EAKup6EXJbMTwywxS&branch=main)](https://app.travis-ci.com/selftaught/GameOfLife)
 
