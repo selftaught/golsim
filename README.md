@@ -1,6 +1,7 @@
-# Game of Life
+# Game of life clone
+## Intro
 
-A PyGame implementation of Conway's Game of Life
+This is yet another Game of Life clone, developed using the [pygame library](https://github.com/pygame/pygame). This project was started out of boredom, an interest play around with pygame / cellular automata. It's a WIP and has limited functionality with limited patterns available. The existing open source software [Golly](https://github.com/jimblandy/golly) is the recommended software for simulating Conway's Game of Life, as well as the [simulator](https://conwaylife.com/) on the official website.
 
 [![Build Status](https://app.travis-ci.com/selftaught/GameOfLife.svg?token=Tx7EAKup6EXJbMTwywxS&branch=main)](https://app.travis-ci.com/selftaught/GameOfLife)
 
@@ -8,7 +9,7 @@ A PyGame implementation of Conway's Game of Life
 
 ## Install requirements
 
-1. Create venv (if needed): `python3 -m venv venv`
+1. Create venv: `python3 -m venv venv`
 2. Activate venv: `source venv/bin/activate`
 3. Install requirements: `pip3 install -r requirements.txt`
 
@@ -27,9 +28,9 @@ A PyGame implementation of Conway's Game of Life
 ## TODO
 
 - [ ] Cell selection & controls (copy, cut, save)
-- [ ] Scrollable pattern menu container
-- [ ] Grid zoom
-- [ ] Resizeable grid
-- [ ] Frame recording
-- [ ] Rotatable pattern selection
-- [ ] Panning
+- [ ] Increase cell array size to something like 5000x5000
+- [ ] Start with a zoomed in view at the center of the cell array
+- [ ] Zooming in/out on cell array (increase/decrease number of visible cells)
+- [ ] Panning to view other parts of the cell array when zoomed
+- [ ] Autosave game cell array seed to a file for replay
+- [ ] Rotate selected pattern by 90 degrees on hot key

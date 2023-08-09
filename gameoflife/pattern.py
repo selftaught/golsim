@@ -201,13 +201,13 @@ class PatternMenu:
         self._enabled = False
         self._rect = Rect(x, y, 0, 0)
         self._rows = []
-        self.innerSurface = None
-        self.scrollBarEnabled = True
-        self.scrollBarWidth = 15
-        self.scrollBarHeight = None
-        self.scrollBarColor = GREY_DARK1
-        self.scrollBarRect = None
-        self.scrollBarRatio = 1
+        self._rowsSurface = None
+        self._scrollBarEnabled = True
+        self._scrollBarWidth = 15
+        self._scrollBarHeight = None
+        self._scrollBarColor = GREY_DARK1
+        self._scrollBarRect = None
+        self._scrollBarRatio = 1
 
     def enable(self) -> None:
         self._enabled = True
@@ -233,6 +233,7 @@ class PatternMenu:
     def setPatterns(self, patterns: List[Pattern]) -> None:
         self._patterns = patterns
         self._rows.clear()
+
         yOffset = self._padding
         widest = None
         for pattern in patterns:
@@ -262,17 +263,17 @@ class PatternMenu:
             row.setWidth(widest)
             row.setMenuHeight(outerHeight)
 
-        if self.scrollBarEnabled:
-            self._rect.w += self.scrollBarWidth
+        if self._scrollBarEnabled:
+            self._rect.w += self._scrollBarWidth
 
         self._closeBtn.setX(self._rect.x + self._rect.w)
 
-        self.innerSurface = Surface((widest + (self._padding * 2), yOffset))
-        self.innerSurface.fill(self._bgColor)
+        self._rowsSurface = Surface((widest + (self._padding * 2), yOffset))
+        self._rowsSurface.fill(self._bgColor)
 
-        self.scrollBarHeight = (outerHeight / innerHeight) * outerHeight
-        self.scrollBarRatio = innerHeight / outerHeight
-        self.scrollBarRect = Rect(self._rect.x + (self._rect.w - self.scrollBarWidth), self._rect.y, self.scrollBarWidth, self.scrollBarHeight)
+        self._scrollBarHeight = (outerHeight / innerHeight) * outerHeight
+        self._scrollBarRatio = innerHeight / outerHeight
+        self._scrollBarRect = Rect(self._rect.x + (self._rect.w - self._scrollBarWidth), self._rect.y, self._scrollBarWidth, self._scrollBarHeight)
 
     def getHeight(self) -> int:
         height = self._padding
@@ -288,7 +289,7 @@ class PatternMenu:
             row.update()
 
     def eventHandler(self, event) -> bool:
-        sbHalfHeight = self.scrollBarRect.height / 2
+        sbHalfHeight = self._scrollBarRect.height / 2
         menuHeight = self.getHeight()
         buttonCode = event.dict.get('button')
         (mX, mY) = pygame.mouse.get_pos()
@@ -299,20 +300,20 @@ class PatternMenu:
                 return True
             # Scrollbar mouse event
             # If the mouse pos is in the scrollbar area
-            elif (mX >= x + w - self.scrollBarRect.width) and (mX <= x + w):
+            elif (mX >= x + w - self._scrollBarRect.width) and (mX <= x + w):
                 # If the mouse pos is somewhere in the middle with padding of 1/2 the scrollbars height on top / bottom.
                 # Boundary check is needed to prevent the scrollbar from running past the top of the menu.
                 if (mY >= y + sbHalfHeight and mY <= y + (menuHeight - sbHalfHeight)):
                     # Center the scrollbar to mouse y since we know there's more than half the scrollbars height worth of room above / below.
-                    self.scrollBarRect.y = mY - self.scrollBarRect.height / 2
+                    self._scrollBarRect.y = mY - self._scrollBarRect.height / 2
                 # If there's not enough room, is the mouse y pos at the top?
                 elif mY >= y and mY <= y + sbHalfHeight:
                     # Set the top of the scrollbar to the mouse y pos.
-                    self.scrollBarRect.y = mY
+                    self._scrollBarRect.y = mY
                 # If not the top then bottom?
                 elif (mY >= y + menuHeight - sbHalfHeight) and mY <= y + menuHeight:
                     # set the bottom of the scrollbar to the mouse y pos
-                    self.scrollBarRect.y = mY - self.scrollBarRect.height
+                    self._scrollBarRect.y = mY - self._scrollBarRect.height
                 return True
             else:
                 for row in self._rows:
@@ -326,24 +327,24 @@ class PatternMenu:
         elif buttonCode in [MOUSEBUTTON_SCROLL_UP, MOUSEBUTTON_SCROLL_DOWN]:
             scrollStep = 5
             if buttonCode == MOUSEBUTTON_SCROLL_DOWN:
-                scrollBarBottom = self.scrollBarRect.y + self.scrollBarRect.h
+                scrollBarBottom = self._scrollBarRect.y + self._scrollBarRect.h
                 menuBottom = y + menuHeight
                 if scrollBarBottom <= menuBottom - scrollStep:
-                    self.scrollBarRect.y += scrollStep
+                    self._scrollBarRect.y += scrollStep
                     for row in self._rows:
-                        row.scrollY += scrollStep * self.scrollBarRatio
+                        row._scrollY += scrollStep * self._scrollBarRatio
                 elif scrollBarBottom < menuBottom:
                     rem = menuBottom - scrollBarBottom
                     if rem < scrollStep:
-                        self.scrollBarRect.y = menuBottom - self.scrollBarRect.height
+                        self._scrollBarRect.y = menuBottom - self._scrollBarRect.height
             elif buttonCode == MOUSEBUTTON_SCROLL_UP:
-                scrollBarTop = self.scrollBarRect.y
-                if self.scrollBarRect.y >= y + scrollStep:
-                    self.scrollBarRect.y -= scrollStep
+                scrollBarTop = self._scrollBarRect.y
+                if self._scrollBarRect.y >= y + scrollStep:
+                    self._scrollBarRect.y -= scrollStep
                     for row in self._rows:
-                        row.scrollY -= scrollStep * self.scrollBarRatio
-                elif self.scrollBarRect.y > y:
-                    self.scrollBarRect.y = y
+                        row._scrollY -= scrollStep * self._scrollBarRatio
+                elif self._scrollBarRect.y > y:
+                    self._scrollBarRect.y = y
             return True
         return False
 
@@ -351,18 +352,18 @@ class PatternMenu:
         draw.rect(screen, self._bgColor, self._rect)
 
         for row in self._rows:
-            row.draw(self.innerSurface)
+            row.draw(self._rowsSurface)
 
-        innerArea = Rect(0, (self.scrollBarRect.y - self._rect.y) * self.scrollBarRatio, self.innerSurface.get_size()[0], self.getHeight())
+        rowsSurfaceArea = Rect(0, (self._scrollBarRect.y - self._rect.y) * self._scrollBarRatio, self._rowsSurface.get_size()[0], self.getHeight())
 
-        screen.blit(self.innerSurface, (self._rect.x, self._rect.y), innerArea)
+        screen.blit(self._rowsSurface, (self._rect.x, self._rect.y), rowsSurfaceArea)
 
         drawRectBorder(screen, self._rect)
 
-        if self.scrollBarEnabled:
-            lineStartPos = (self.scrollBarRect.x, self._rect.y)
-            lineEndPos = (self.scrollBarRect.x, self._rect.y + self._rect.height)
-            draw.rect(screen, self.scrollBarColor, self.scrollBarRect)
+        if self._scrollBarEnabled:
+            lineStartPos = (self._scrollBarRect.x, self._rect.y)
+            lineEndPos = (self._scrollBarRect.x, self._rect.y + self._rect.height)
+            draw.rect(screen, self._scrollBarColor, self._scrollBarRect)
             draw.line(screen, BLACK, lineStartPos, lineEndPos)
 
         self._closeBtn.draw(screen)

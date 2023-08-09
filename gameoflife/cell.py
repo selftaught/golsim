@@ -8,22 +8,16 @@ class CellState:
 
 
 class Cell:
-    x: int = None
-    y: int = None
-    width: int = None
-    height: int = None
-    state: CellState = None
-    nextState: CellState = None
-
     def __init__(
         self, x: int, y: int, width: int, height: int, state: CellState = None
     ) -> None:
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.state = CellState.DEAD
-        self.colors = {CellState.ALIVE: (0, 0, 0), CellState.DEAD: (255, 255, 255)}
+        self.x : int = x
+        self.y : int = y
+        self.width : int = width
+        self.height : int = height
+        self.state : CellState = CellState.DEAD
+        self.nextState : CellState = None
+        self.colors : dict = {CellState.ALIVE: (0, 0, 0), CellState.DEAD: (255, 255, 255)}
         if state is None:
             self.state = (
                 CellState.ALIVE if random.randint(0, 100) < 10 else CellState.DEAD

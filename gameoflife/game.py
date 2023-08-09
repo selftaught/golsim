@@ -3,7 +3,7 @@ import pygame
 
 from pygame.font import Font
 from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_ESCAPE
-from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1
+from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
 from gameoflife.constvars import *
 from gameoflife.config import Config
 from gameoflife.grid import Grid
@@ -120,7 +120,7 @@ class Game:
                         self.patternSelected = handlerResp
                         self.patternSelected.setCellHeight(self.cellHeight)
                         self.patternSelected.setCellWidth(self.cellWidth)
-                    return
+                    break
             if event.type == pygame.QUIT:
                 self.quit()
             if event.type == KEYDOWN:
@@ -164,7 +164,7 @@ class Game:
                     cellY = int(mY / self.cellHeight)
                     try:
                         if self.patternSelected:
-                            selectedCells = self.patternSelected.getCells()
+                            selectedCells = self.patternSdelected.getCells()
                             for y in range(len(selectedCells)):
                                 for x in range(len(selectedCells[y])):
                                     nextCellX = cellX + x
@@ -264,7 +264,7 @@ class Game:
                 self.stop()
 
     def draw(self) -> None:
-        self.screen.fill((255, 255, 255))
+        self.screen.fill(WHITE)
 
         for y in range(len(self.cells)):
             for x in range(len(self.cells[y])):
