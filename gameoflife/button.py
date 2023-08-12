@@ -5,6 +5,7 @@ from pygame import Surface, draw, Color
 from pygame.font import Font
 from pygame.rect import Rect
 from gameoflife.colors import BLACK, GREY
+from gameoflife.helpers import drawRectBorder
 
 
 class ButtonText:
@@ -22,7 +23,9 @@ class BaseButton:
         text: str,
         x: int,
         y: int,
-        bgColor: Color,
+        bgColor: Color = GREY,
+        border: bool = True,
+        borderColor: Color = BLACK
     ) -> None:
         self.text = text
         self.x = x
@@ -95,8 +98,10 @@ class CircleButton(BaseButton):
         y: int,
         radius: float,
         bgColor: Color = GREY,
+        border: bool = True,
+        borderColor: Color = BLACK
     ) -> None:
-        super().__init__(text, x, y, bgColor)
+        super().__init__(text, x, y, bgColor, border, borderColor)
         self.radius: float = radius
 
     def getRadius(self) -> float:
@@ -147,8 +152,10 @@ class RectButton(BaseButton):
         x: int = 0,
         y: int = 0,
         bgColor: Color = GREY,
+        border: bool = True,
+        borderColor: Color = BLACK
     ) -> None:
-        super().__init__(text, x, y, bgColor)
+        super().__init__(text, x, y, bgColor, border, borderColor)
         self.h = h
         self.w = w
 
@@ -165,12 +172,15 @@ class RectButton(BaseButton):
         self.w = w
 
     def draw(self, surface: Surface) -> None:
-        draw.rect(surface, self.currBgColor, Rect(self.x, self.y, self.w, self.h))
+        rect = Rect(self.x, self.y, self.w, self.h)
+        draw.rect(surface, self.currBgColor, rect)
         textImg = self.font.render(self.text, True, (255, 255, 255))
         fontSize = self.font.size(self.text)
         textX = self.x + ((self.w / 2) - (fontSize[0] / 2))
         textY = self.y + ((self.h / 2) - (fontSize[1] / 2))
         surface.blit(textImg, (textX, textY))
+        if self.border:
+            drawRectBorder(surface, rect, self.borderColor)
 
     def clicked(self, mouseX: int, mouseY: int) -> bool:
         if (mouseX >= self.x and mouseX <= self.x + self.w) and (

@@ -76,8 +76,7 @@ class Game:
             RectButton(ButtonText.EXIT, btnWidth, btnHeight),
         ]
 
-        btnCount = len(self.buttons)
-        buttonsTotalWidth = (btnCount * (btnWidth + btnMargin)) - btnMargin
+        buttonsTotalWidth = (len(self.buttons) * (btnWidth + btnMargin)) - btnMargin
         remainingScreenSpace = self.width - buttonsTotalWidth
         buttonX = remainingScreenSpace / 2
         buttonY = (self.actionBarY) + ((self.actionBarHeight / 2) - btnHeight / 2)
@@ -85,6 +84,7 @@ class Game:
         for button in self.buttons:
             button.setFont(self.font)
             button.setHoverBackgroundColor(GREY_DARK2)
+            button.setBorderColor(GREY_DARK2)
             button.setX(buttonX)
             button.setY(buttonY)
             buttonX += btnWidth + btnMargin

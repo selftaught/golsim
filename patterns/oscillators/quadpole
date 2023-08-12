@@ -1,0 +1,19 @@
+{
+    "name": "quadpole",
+    "period": 2,
+    "type": "oscillator",
+    "configuration": "barberpole",
+    "discovered": {
+        "by": "MIT Group",
+        "year": 1970
+    },
+    "seed": [
+        "0000011",
+        "0000101",
+        "0000000",
+        "0010100",
+        "0000000",
+        "1010000",
+        "1100000"
+    ]
+}

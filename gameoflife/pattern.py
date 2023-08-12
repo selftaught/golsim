@@ -1,7 +1,7 @@
 import json
 import pygame
 
-from gameoflife.button import CircleButton
+from gameoflife.button import RectButton
 from gameoflife.cell import Cell, CellState
 from gameoflife.colors import (
     BLACK,
@@ -202,16 +202,17 @@ class PatternMenu:
         self._maxHeight: Union[int, None] = maxHeight
         self._font = font
         self._bgColor = GREY_LIGHT1
-        self._closeBtn = CircleButton("X", x, y, 10, RED_LIGHT1)
+        self._closeBtn = RectButton("X", 20, 20, x, y - 20, RED_LIGHT1)
+        self._closeBtn.setFont(font)
         self._closeBtn.setHoverBackgroundColor(RED)
         self._enabled = False
         self._rect = Rect(x, y, 0, 0)
         self._rows = []
         self._rowsSurface = None
         self._scrollBarEnabled = True
-        self._scrollBarWidth = 15
+        self._scrollBarWidth = 12
         self._scrollBarHeight = None
-        self._scrollBarColor = GREY_DARK1
+        self._scrollBarColor = BLACK
         self._scrollBarRect = None
         self._scrollBarRatio = 1
 
@@ -272,7 +273,7 @@ class PatternMenu:
         if self._scrollBarEnabled:
             self._rect.w += self._scrollBarWidth
 
-        self._closeBtn.setX(self._rect.x + self._rect.w)
+        #self._closeBtn.setX(self._rect.x + self._rect.w - 15)
 
         self._rowsSurface = Surface((widest + (self._padding * 2), yOffset))
         self._rowsSurface.fill(self._bgColor)
@@ -301,6 +302,7 @@ class PatternMenu:
         (mX, mY) = pygame.mouse.get_pos()
         (x, y, w, h) = (self._rect.x, self._rect.y, self._rect.width, self._rect.height)
         if button == MOUSEBUTTON_LCLICK:
+            # Close button
             if self._closeBtn.clicked(mX, mY):
                 self.disable()
                 return True
@@ -342,7 +344,6 @@ class PatternMenu:
                     if rem < scrollStep:
                         self._scrollBarRect.y = menuBottom - self._scrollBarRect.height
             elif button == MOUSEBUTTON_SCROLL_UP:
-                scrollBarTop = self._scrollBarRect.y
                 if self._scrollBarRect.y >= y + scrollStep:
                     self._scrollBarRect.y -= scrollStep
                     for row in self._rows:
@@ -362,12 +363,12 @@ class PatternMenu:
 
         screen.blit(self._rowsSurface, (self._rect.x, self._rect.y), rowsSurfaceArea)
 
-        drawRectBorder(screen, self._rect)
-
         if self._scrollBarEnabled:
             lineStartPos = (self._scrollBarRect.x, self._rect.y)
             lineEndPos = (self._scrollBarRect.x, self._rect.y + self._rect.height)
             draw.rect(screen, self._scrollBarColor, self._scrollBarRect)
             draw.line(screen, BLACK, lineStartPos, lineEndPos)
+
+        drawRectBorder(screen, self._rect)
 
         self._closeBtn.draw(screen)

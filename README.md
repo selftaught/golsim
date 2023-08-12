@@ -33,3 +33,4 @@ Yet another Game of Life simulator, developed using the python [pygame library](
 - [ ] Panning to view other parts of the cell array when zoomed
 - [ ] Autosave game cell array seed to a file for replay
 - [ ] Rotate selected pattern by 90 degrees on hot key
+- [ ] Support [RLE](https://conwaylife.com/wiki/Run_Length_Encoded) format
