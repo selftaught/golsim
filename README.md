@@ -6,11 +6,9 @@ Yet another Game of Life simulator, developed using the python [pygame library](
 
 ![Game of Life](https://i.imgur.com/HfXrR09.png)
 
-## Install requirements
+## Install Dependencies
 
-1. Create venv: `python3 -m venv venv`
-2. Activate venv: `source venv/bin/activate`
-3. Install requirements: `pip3 install -r requirements.txt`
+`pip3 install -r requirements.txt`
 
 ## Run the game
 
