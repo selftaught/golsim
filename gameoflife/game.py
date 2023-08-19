@@ -29,19 +29,6 @@ class MouseModes:
     DRAW = 0
     PAN = 1
 
-class MouseModes:
-    DRAW = 0
-    PAN = 1
-
-
-class ButtonID:
-    CLEAR = "Clear"
-    EXIT = "Exit"
-    NEXT = "Next"
-    RESET = "Reset"
-    START = "Start"
-    STOP = "Stop"
-    PATTERNS = "Patterns"
 
 class Game:
     cfg: Config = None
@@ -199,22 +186,22 @@ class Game:
                 (mX, mY) = pygame.mouse.get_pos()
                 for button in self.buttons:
                     if button.clicked(mX, mY):
-                        bID = button.getID()
-                        if bID == ButtonID.CLEAR:
+                        bTxt = button.getText()
+                        if bTxt == ButtonText.CLEAR:
                             self._clear = True
-                        elif bID == ButtonID.NEXT:
+                        elif bTxt == ButtonText.NEXT:
                             self._next = True
-                        elif bID == ButtonID.START:
+                        elif bTxt == ButtonText.START:
                             self.start()
-                            button.setID(ButtonID.STOP)
-                        elif bID == ButtonID.STOP:
+                            button.setID(ButtonText.STOP)
+                        elif bTxt == ButtonText.STOP:
                             self.stop()
-                            button.setID(ButtonID.START)
-                        elif bID == ButtonID.PATTERNS:
+                            button.setID(ButtonText.START)
+                        elif bTxt == ButtonText.PATTERNS:
                             self.patternsMenu.toggle()
-                        elif bID == ButtonID.RESET:
+                        elif bTxt == ButtonText.RESET:
                             self.reset()
-                        elif bID == ButtonID.EXIT:
+                        elif bTxt == ButtonText.EXIT:
                             self.running = False
 
                 if mY < self.actionBarY:
