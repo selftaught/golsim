@@ -354,15 +354,9 @@ class Game:
         pygame.display.update()
 
     def drawActionBar(self) -> None:
-<<<<<<< Updated upstream
-        x = 0
-        y = self.height - self.actionBarHeight
-        bg = pygame.Rect(x, y, self.width, self.actionBarHeight)
-=======
         bg = pygame.Rect(
             self.actionBarX, self.actionBarY, self.width, self.actionBarHeight
         )
->>>>>>> Stashed changes
         pygame.draw.rect(self.screen, GREY_LIGHT1, bg)
         pygame.draw.line(
             self.screen,
@@ -375,8 +369,6 @@ class Game:
         for button in self.buttons:
             button.draw(self.screen)
 
-<<<<<<< Updated upstream
-=======
         stats = [
             f"Alive: {self.cellsAlive}",
             f"Births: {self.cellsBirthed}",
@@ -405,7 +397,6 @@ class Game:
         )
         self.screen.blit(vrText, (self.width - 130, self.actionBarY + 45))
 
->>>>>>> Stashed changes
     def clear(self) -> None:
         self._clear = True
 
@@ -435,27 +426,3 @@ class Game:
 
     def stopped(self) -> bool:
         return self._stopped
-<<<<<<< Updated upstream
-
-    def loadPatterns(self) -> None:
-        # still lifes
-        for path in sorted(glob.glob("patterns/still-lifes/*")):
-            pattern = Pattern(path.split("/")[-1], path, PatternType.StillLife)
-            if pattern.getRows():
-                self.patterns.append(pattern)
-
-        # oscillators
-        for path in glob.glob("patterns/oscillators/*"):
-            pattern = Pattern(path.split("/")[-1], path, PatternType.Oscillator)
-            if pattern.getRows():
-                self.patterns.append(pattern)
-
-        # spaceships
-        for path in glob.glob("patterns/spaceships/*"):
-            pattern = Pattern(path.split("/")[-1], path, PatternType.Spacehship)
-            if pattern.getRows():
-                self.patterns.append(pattern)
-
-        self.patternsMenu.setPatterns(self.patterns)
-=======
->>>>>>> Stashed changes
