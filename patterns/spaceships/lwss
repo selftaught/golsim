@@ -1,0 +1,17 @@
+{
+    "name": "lightweight",
+    "family": "XWSS",
+    "period": 4,
+    "type": "spaceship",
+    "direction": "orthogonal",
+    "discovered": {
+        "by": "John Conway",
+        "year": 1970
+    },
+    "seed": [
+        "01111",
+        "10001",
+        "00001",
+        "10010"
+    ]
+}

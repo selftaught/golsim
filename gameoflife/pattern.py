@@ -1,17 +1,19 @@
+import json
 import pygame
 
-from gameoflife.button import CircleButton
+from gameoflife.button import RectButton
 from gameoflife.cell import Cell, CellState
 from gameoflife.colors import (
-    WHITE,
     BLACK,
+    GREY,
+    GREY_DARK1,
     GREY_LIGHT1,
     GREY_LIGHT2,
-    GREY,
     RED,
     RED_LIGHT1,
-    GREY_DARK1,
+    WHITE,
 )
+from gameoflife.constvars import *
 from gameoflife.helpers import drawRectBorder
 from pygame import Surface, draw, Rect, Color
 from pygame.font import Font
@@ -23,6 +25,8 @@ class PatternType:
     StillLife: int = 1
     Oscillator: int = 2
     Spacehship: int = 3
+    FlipFlop: int = 4
+    Methuselah: int = 5
 
 
 class Pattern:
@@ -70,14 +74,14 @@ class Pattern:
     def getCols(self) -> int:
         return self._cols
 
+    def getRows(self) -> int:
+        return self._rows
+
     def getHeight(self) -> int:
         return self._cellH * len(self._cells)
 
     def getName(self) -> str:
         return self._name
-
-    def getRows(self) -> int:
-        return self.rows
 
     def getSurface(self) -> Surface:
         width = self._cols * self._cellW
@@ -94,10 +98,10 @@ class Pattern:
         return self._cellW * self._cols
 
     def setBgColor(self, color) -> None:
-        self.bgColor = color
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
+        self._bgColor = color
+        for y in range(len(self._cells)):
+            for x in range(len(self._cells[y])):
+                cell = self._cells[y][x]
                 cell.setStateColor(CellState.DEAD, color)
 
     def setCellHeight(self, height: int) -> None:
@@ -119,72 +123,61 @@ class PatternMenuRow:
         self,
         x: int,
         y: int,
-        w: int,
+        absX: int,
+        absY: int,
         pattern: Pattern,
         bgColor: Color,
         borderColor: Color,
     ) -> None:
-        self.inactiveBgColor = bgColor
-        self.bgColor = self.inactiveBgColor
-        self.hoveredBgColor = GREY_LIGHT2
-        self.pattern = pattern
-        self.pattern.setBgColor(self.bgColor)
-        self.padding = 5
-        self.h = self.pattern.getHeight() + (self.padding * 2)
-        self.x = x
-        self.y = y
-        self.w = w
-        self.cursor = pygame.SYSTEM_CURSOR_ARROW
+        self._absX: int = absX
+        self._absY: int = absY
+        self._bgColor = bgColor
+        self._cursor = pygame.SYSTEM_CURSOR_ARROW
+        self._hoveredBgColor = GREY_LIGHT2
+        self._inactiveBgColor = bgColor
+        self._menuH: int = 0
+        self._padding = 0
+        self._pattern = pattern
+        self._pattern.setBgColor(self._bgColor)
+        self._rect = Rect(x, y, 0, self._pattern.getHeight() + (self._padding * 2))
+        self._scrollY: int = 0
 
     def update(self) -> None:
         if self.hovered():
-            self.bgColor = self.hoveredBgColor
-            self.cursor = pygame.SYSTEM_CURSOR_HAND
-            pygame.mouse.set_cursor(self.cursor)
+            self._bgColor = self._hoveredBgColor
+            self._cursor = pygame.SYSTEM_CURSOR_HAND
+            pygame.mouse.set_cursor(self._cursor)
         else:
-            if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
-                self.cursor = pygame.SYSTEM_CURSOR_ARROW
-                pygame.mouse.set_cursor(self.cursor)
-            self.bgColor = self.inactiveBgColor
-        self.pattern.setBgColor(self.bgColor)
+            if self._cursor != pygame.SYSTEM_CURSOR_ARROW:
+                self._cursor = pygame.SYSTEM_CURSOR_ARROW
+                pygame.mouse.set_cursor(self._cursor)
+            self._bgColor = self._inactiveBgColor
+        self._pattern.setBgColor(self._bgColor)
 
     def draw(self, screen: Surface) -> None:
-        surf = Surface((self.w, self.h))
-        patternSurf = self.pattern.getSurface()
-        patternHeight = self.pattern.getHeight()
-        surf.fill(self.bgColor)
-        surf.blit(patternSurf, (self.padding, self.padding))
-        screen.blit(surf, (self.x, self.y))
-        drawRectBorder(
-            screen,
-            self.x,
-            self.y,
-            self.w,
-            self.h,
-            GREY_DARK1,
-        )
+        surf = Surface((self._rect.w, self._rect.h))
+        surf.fill(self._bgColor)
+        surf.blit(self._pattern.getSurface(), (self._padding, self._padding))
+        screen.blit(surf, (self._rect.x, self._rect.y))
+        drawRectBorder(screen, self._rect, GREY_DARK1)
 
     def getHeight(self) -> int:
-        return self.h
+        return self._rect.height
 
     def getPattern(self) -> Pattern:
         return self._pattern
 
-    def setMenuHeight(self, height: int) -> None:
+    def setMenuHeight(self, height:int) -> None:
         self._menuH = height
 
-    def setWidth(self, width: int) -> None:
+    def setWidth(self, width:int) -> None:
         self._rect.width = width + (self._padding * 2)
 
     def hovered(self) -> bool:
         (mX, mY) = pygame.mouse.get_pos()
         if mY >= self._absY and mY <= self._absY + self._menuH:
-            if (
-                mX >= self._absX + self._rect.x
-                and mX <= self._absX + self._rect.x + self._rect.width
-            ) and (
-                mY >= self._absY + self._rect.y - self._scrollY
-                and mY <= self._absY + self._rect.y + self._rect.height - self._scrollY
+            if (mX >= self._absX + self._rect.x and mX <= self._absX + self._rect.x + self._rect.width) and (
+                mY >= self._absY + self._rect.y - self._scrollY and mY <= self._absY + self._rect.y + self._rect.height - self._scrollY
             ):
                 return True
         return False
@@ -197,17 +190,13 @@ class PatternMenuRow:
     def eventHandler(self) -> Union[None, Pattern]:
         pass
 
-
 # TODO
 class PatternMenuScrollBar:
     def __init__(self) -> None:
         pass
 
-
 class PatternMenu:
-    def __init__(
-        self, x: int, y: int, maxHeight: int = None, font: Font = None
-    ) -> None:
+    def __init__(self, x: int, y: int, maxHeight:int=None, font:Font=None) -> None:
         self._padding = 12
         self._maxHeight: Union[int, None] = maxHeight
         self._font = font
@@ -216,9 +205,15 @@ class PatternMenu:
         self._closeBtn.setFont(font)
         self._closeBtn.setHoverBackgroundColor(RED)
         self._enabled = False
-        self.rows = []
-
-        self.closeBtn.setHoverBackgroundColor(RED)
+        self._rect = Rect(x, y, 0, 0)
+        self._rows = []
+        self._rowsSurface = None
+        self._scrollBarEnabled = True
+        self._scrollBarWidth = 12
+        self._scrollBarHeight = None
+        self._scrollBarColor = BLACK
+        self._scrollBarRect = None
+        self._scrollBarRatio = 1
 
     def enable(self) -> None:
         self._enabled = True
@@ -236,23 +231,29 @@ class PatternMenu:
         self._font = font
         self._closeBtn.setFont(font)
 
-    def setMaxHeight(self, height: int) -> None:
+    def setMaxHeight(self, height:int) -> None:
         self._maxHeight = height
         if self._maxHeight > self._rect.height:
             self._rect.height = self._maxHeight
 
     def setPatterns(self, patterns: List[Pattern]) -> None:
-        self.patterns = patterns
-        self.rows.clear()
-        yOffset = self.padding
+        self._patterns = patterns
+        self._rows.clear()
+
+        yOffset = self._padding
+        widest = None
         for pattern in patterns:
-            pattern.setBgColor(self.bgColor)
+            patternWidth = pattern.getWidth()
+            if widest is None or patternWidth > widest:
+                widest = patternWidth
+            pattern.setBgColor(self._bgColor)
             row = PatternMenuRow(
-                self.x + self.padding,
-                self.y + yOffset,
-                self.w - (self.padding * 2),
+                self._padding,
+                yOffset,
+                self._rect.x,
+                self._rect.y,
                 pattern,
-                self.bgColor,
+                self._bgColor,
                 BLACK,
             )
             self._rows.append(row)
@@ -286,16 +287,17 @@ class PatternMenu:
         )
 
     def getHeight(self) -> int:
-        height = self.padding
-        for row in self.rows:
-            height += row.getHeight() + self.padding
+        height = self._padding
+        for row in self._rows:
+            height += row.getHeight() + self._padding
+        if self._maxHeight and height > self._maxHeight:
+            return self._maxHeight
         return height
 
     def update(self) -> None:
-        if self._enabled:
-            self.closeBtn.update()
-            for row in self.rows:
-                row.update()
+        self._closeBtn.update()
+        for row in self._rows:
+            row.update()
 
     def eventHandler(self, event) -> bool:
         sbHalfHeight = self._scrollBarRect.height / 2
@@ -356,19 +358,21 @@ class PatternMenu:
         return False
 
     def draw(self, screen: Surface) -> None:
-        if self._enabled:
-            height = self.getHeight()
-            rect = Rect(self.x, self.y, self.w, height)
-            yOffset = self.padding
+        draw.rect(screen, self._bgColor, self._rect)
 
-            draw.rect(screen, self.bgColor, rect)
-            drawRectBorder(screen, self.x, self.y, self.w, height)
+        for row in self._rows:
+            row.draw(self._rowsSurface)
 
-        rowsSurfaceArea = Rect(
-            0,
-            (self._scrollBarRect.y - self._rect.y) * self._scrollBarRatio,
-            self._rowsSurface.get_size()[0],
-            self.getHeight(),
-        )
+        rowsSurfaceArea = Rect(0, (self._scrollBarRect.y - self._rect.y) * self._scrollBarRatio, self._rowsSurface.get_size()[0], self.getHeight())
 
-        self.closeBtn.draw(screen)
+        screen.blit(self._rowsSurface, (self._rect.x, self._rect.y), rowsSurfaceArea)
+
+        if self._scrollBarEnabled:
+            lineStartPos = (self._scrollBarRect.x, self._rect.y)
+            lineEndPos = (self._scrollBarRect.x, self._rect.y + self._rect.height)
+            draw.rect(screen, self._scrollBarColor, self._scrollBarRect)
+            draw.line(screen, BLACK, lineStartPos, lineEndPos)
+
+        drawRectBorder(screen, self._rect)
+
+        self._closeBtn.draw(screen)

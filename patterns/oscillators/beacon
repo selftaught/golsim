@@ -1,4 +1,16 @@
-1100
-1100
-0011
-0011
+{
+    "name": "beacon",
+    "period": 2,
+    "type": "oscillator",
+    "configuration": "babbling-brook",
+    "discovered": {
+        "by": "John Conway",
+        "year": 1970
+    },
+    "seed": [
+        "1100",
+        "1100",
+        "0011",
+        "0011"
+    ]
+}

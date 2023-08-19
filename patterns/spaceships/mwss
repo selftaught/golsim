@@ -1,0 +1,18 @@
+{
+    "name": "middleweight",
+    "family": "XWSS",
+    "period": 4,
+    "type": "spaceship",
+    "direction": "orthogonal",
+    "discovered": {
+        "by": "Richard K. Guy",
+        "year": 1969
+    },
+    "seed": [
+        "001000",
+        "100010",
+        "000001",
+        "100001",
+        "011111"
+    ]
+}

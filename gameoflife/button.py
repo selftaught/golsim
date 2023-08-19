@@ -34,7 +34,6 @@ class BaseButton:
         self.text = text
         self.x = x
         self.y = y
-        self.w = w
         self.currBgColor = bgColor
         self.bgColor = bgColor
         self.textColor = None
@@ -44,6 +43,21 @@ class BaseButton:
         self.borderColor = BLACK
         self.cursor = pygame.SYSTEM_CURSOR_ARROW
 
+    def getBackgroundColor(self) -> Color:
+        return self.bgColor
+
+    def getBorderColor(self) -> Color:
+        return self.borderColor
+
+    def getHoverBackgroundColor(self) -> Color:
+        return self.hoverBgColor
+
+    def getX(self) -> int:
+        return self.x
+
+    def getY(self) -> int:
+        return self.y
+
     def getText(self) -> str:
         return self.text
 
@@ -52,9 +66,6 @@ class BaseButton:
 
     def setY(self, y: int) -> None:
         self.y = y
-
-    def setW(self, w: int) -> None:
-        self.w = w
 
     def setFont(self, font: Font) -> None:
         self.font = font
@@ -69,11 +80,10 @@ class BaseButton:
         self.border = border
 
     def setBorderColor(self, color: Color):
-        pass
+        self.borderColor = color
 
     def setText(self, text: str) -> None:
         self.text = text
-        self.id = text
 
     def draw(self, screen: Surface):
         raise NotImplementedError("button draw() not implemented!")
@@ -84,7 +94,6 @@ class BaseButton:
     def update(self) -> None:
         raise NotImplementedError("button update() not implemented!")
 
-
 class CircleButton(BaseButton):
     def __init__(
         self,
@@ -94,9 +103,9 @@ class CircleButton(BaseButton):
         radius: float,
         bgColor: Color = GREY,
         border: bool = True,
-        borderColor: Color = BLACK,
+        borderColor: Color = BLACK
     ) -> None:
-        super().__init__(text, x, y, 0, bgColor)
+        super().__init__(text, x, y, bgColor, border, borderColor)
         self.radius: float = radius
 
     def getRadius(self) -> float:
@@ -106,11 +115,10 @@ class CircleButton(BaseButton):
         self.radius = radius
 
     def draw(self, surface: Surface) -> None:
-        draw.circle(surface, self.currBgColor, (self.x, self.y), self.radius, self.w)
+        draw.circle(surface, self.currBgColor, (self.x, self.y), self.radius, 0)
         if self.border:
             draw.circle(surface, self.borderColor, (self.x, self.y), self.radius, 1)
         if self.text:
-            textLen = len(self.text)
             textImg = self.font.render(self.text, True, BLACK)
             fontSize = self.font.size(self.text)
             textX = self.x - int(fontSize[0] / 2)
@@ -138,7 +146,6 @@ class CircleButton(BaseButton):
                 pygame.mouse.set_cursor(self.cursor)
             if self.currBgColor != self.bgColor:
                 self.currBgColor = self.bgColor
-
 
 class RectButton(BaseButton):
     def __init__(

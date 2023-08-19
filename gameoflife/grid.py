@@ -3,12 +3,6 @@ from gameoflife.colors import GREY_LIGHT1
 
 
 class Grid:
-    cols: int = 0
-    colWidth: int = 0
-    rows: int = 0
-    rowHeight: int = 0
-    enabled: bool = True
-
     def __init__(
         self, cols: int, rows: int, colWidth: int, rowHeight: int, enabled: bool = True
     ):

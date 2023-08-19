@@ -11,13 +11,6 @@ class CellState:
 
 
 class Cell:
-    x: int = None
-    y: int = None
-    width: int = None
-    height: int = None
-    state: CellState = None
-    nextState: CellState = None
-
     def __init__(
         self, x: int, y: int, width: int, height: int, state: Union[int, None] = None
     ) -> None:
