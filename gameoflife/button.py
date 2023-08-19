@@ -1,10 +1,24 @@
 import math
 import pygame
 
+from gameoflife.colors import BLACK, GREY
+from gameoflife.helpers import drawRectBorder
+
 from pygame import Surface, draw, Color
 from pygame.font import Font
 from pygame.rect import Rect
-from gameoflife.colors import BLACK, GREY
+
+from typing import Union
+
+
+class ButtonText:
+    CLEAR = "Clear"
+    EXIT = "Exit"
+    NEXT = "Next"
+    RESET = "Reset"
+    START = "Start"
+    STOP = "Stop"
+    PATTERNS = "Patterns"
 
 
 class BaseButton:
@@ -13,8 +27,9 @@ class BaseButton:
         text: str,
         x: int,
         y: int,
-        w: int,
-        bgColor: Color,
+        bgColor: Color = GREY,
+        border: bool = True,
+        borderColor: Color = BLACK,
     ) -> None:
         self.text = text
         self.id = text
@@ -24,7 +39,7 @@ class BaseButton:
         self.currBgColor = bgColor
         self.bgColor = bgColor
         self.textColor = None
-        self.hoverBgColor = None
+        self.hoverBgColor = bgColor
         self.hoverTextColor = None
         self.border = True
         self.borderColor = BLACK
@@ -74,57 +89,6 @@ class BaseButton:
     def update(self) -> None:
         raise NotImplementedError("button update() not implemented!")
 
-class RectButton(BaseButton):
-    def __init__(
-        self,
-        text: str,
-        w: int,
-        h: int,
-        x: int = 0,
-        y: int = 0,
-        bgColor: Color = GREY,
-    ) -> None:
-        super().__init__(text, x, y, w, bgColor)
-        self.h: int = h
-        self.rect: Rect = Rect(x, y, w, h)
-
-    def setH(self, h: int) -> None:
-        self.h = h
-
-    def setX(self, x: int) -> None:
-        self.x = x
-        self.rect.x = x
-
-    def setY(self, y: int) -> None:
-        self.y = y
-        self.rect.y = y
-
-    def draw(self, surface: Surface) -> None:
-        draw.rect(surface, self.bgColor, self.rect)
-        textImg = self.font.render(self.text, True, (255, 255, 255))
-        fontSize = self.font.size(self.text)
-        textX = self.x + ((self.w / 2) - (fontSize[0] / 2))
-        textY = self.y + ((self.h / 2) - (fontSize[1] / 2))
-        surface.blit(textImg, (textX, textY))
-
-    def clicked(self, mouseX: int, mouseY: int) -> bool:
-        if (mouseX >= self.x and mouseX <= self.x + self.w) and (
-            mouseY >= self.y and mouseY <= self.y + self.h
-        ):
-            return True
-        return False
-
-    def update(self) -> None:
-        (mX, mY) = pygame.mouse.get_pos()
-        if (mX >= self.x and mX <= self.x + self.w) and (
-            mY >= self.y and mY <= self.y + self.h
-        ):
-            self.cursor = pygame.SYSTEM_CURSOR_HAND
-            pygame.mouse.set_cursor(self.cursor)
-        else:
-            if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
-                self.cursor = pygame.SYSTEM_CURSOR_ARROW
-                pygame.mouse.set_cursor(self.cursor)
 
 class CircleButton(BaseButton):
     def __init__(
@@ -134,6 +98,8 @@ class CircleButton(BaseButton):
         y: int,
         radius: float,
         bgColor: Color = GREY,
+        border: bool = True,
+        borderColor: Color = BLACK,
     ) -> None:
         super().__init__(text, x, y, 0, bgColor)
         self.radius: float = radius
@@ -171,6 +137,71 @@ class CircleButton(BaseButton):
             self.cursor = pygame.SYSTEM_CURSOR_HAND
             pygame.mouse.set_cursor(self.cursor)
             self.currBgColor = self.hoverBgColor
+        else:
+            if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
+                self.cursor = pygame.SYSTEM_CURSOR_ARROW
+                pygame.mouse.set_cursor(self.cursor)
+            if self.currBgColor != self.bgColor:
+                self.currBgColor = self.bgColor
+
+
+class RectButton(BaseButton):
+    def __init__(
+        self,
+        text: str,
+        rect:Rect = Rect(0, 0, 0, 0),
+        bgColor: Color = GREY,
+        border: bool = True,
+        borderColor: Color = BLACK,
+    ) -> None:
+        super().__init__(text, rect.x, rect.y, bgColor, border, borderColor)
+        self._rect = rect
+        self.currBgColor = bgColor
+
+    def getRect(self) -> Rect:
+        return self._rect
+
+    def getH(self) -> int:
+        return self._rect.height
+
+    def getW(self) -> int:
+        return self._rect.width
+
+    def getX(self) -> int:
+        return self._rect.x
+
+    def getY(self) -> int:
+        return self._rect.y
+
+    def setRect(self, rect: Rect):
+        self._rect = rect
+
+    def setW(self, width:int) -> None:
+        self._rect.width = width
+
+    def setH(self, height:int) -> None:
+        self._rect.height = height
+
+    def draw(self, surface: Surface) -> None:
+        draw.rect(surface, self.currBgColor, self._rect)
+        textImg = self.font.render(self.text, True, (255, 255, 255))
+        fontSize = self.font.size(self.text)
+        textX = self._rect.x + ((self._rect.width / 2) - (fontSize[0] / 2))
+        textY = self._rect.y + ((self._rect.height / 2) - (fontSize[1] / 2))
+        surface.blit(textImg, (textX, textY))
+        if self.border:
+            drawRectBorder(surface, self._rect, self.borderColor)
+
+    def clicked(self, mouseX: int, mouseY: int) -> bool:
+        if self._rect.collidepoint((mouseX, mouseY)):
+            return True
+        return False
+
+    def update(self) -> None:
+        if self._rect.collidepoint(pygame.mouse.get_pos()):
+            self.cursor = pygame.SYSTEM_CURSOR_HAND
+            self.currBgColor = self.hoverBgColor
+            pygame.mouse.set_cursor(self.cursor)
         else:
             if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
                 self.cursor = pygame.SYSTEM_CURSOR_ARROW

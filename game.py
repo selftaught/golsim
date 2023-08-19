@@ -1,5 +1,6 @@
+import asyncio
 import pygame
 from gameoflife.game import Game
 
-Game().loop()
+asyncio.run(Game().loop())
 pygame.quit()
