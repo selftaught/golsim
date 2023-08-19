@@ -27,42 +27,6 @@ class PatternType:
 
 class Pattern:
     def __init__(self, name: str, path: str, type: PatternType) -> None:
-<<<<<<< Updated upstream
-        self.rows: list = 0
-        self.cols: list = 0
-        self.name: str = name
-        self.desc: str = ""  # TODO
-        self.path: str = path
-        self.type: PatternType = type
-        self.cells: List[List] = []
-        self.cellWidth = 10
-        self.cellHeight = 10
-        self.rowMaxLen = 0
-        self.bgColor = GREY_LIGHT1
-        self._load()
-
-    def _load(self):
-        with open(self.path) as file:
-            lines = [line.rstrip() for line in file]
-            self.rows = len(lines)
-            y = 0
-            for line in lines:
-                if len(line) > self.rowMaxLen:
-                    self.rowMaxLen = len(line)
-                row = []
-                x = 0
-                for char in line:
-                    cellState = CellState.DEAD if char == "0" else CellState.ALIVE
-                    c = Cell(x, y, self.cellWidth, self.cellHeight, cellState)
-                    row.append(c)
-                    x += 1
-                self.cells.append(row)
-                y += 1
-            self.cols = self.rowMaxLen
-
-    def getCells(self) -> List[List]:
-        return self.cells
-=======
         self._rows: int = 0
         self._cols: int = 0
         self._name: str = name
@@ -111,15 +75,10 @@ class Pattern:
 
     def getName(self) -> str:
         return self._name
->>>>>>> Stashed changes
 
     def getRows(self) -> int:
         return self.rows
 
-<<<<<<< Updated upstream
-    def getHeight(self) -> int:
-        return self.cellHeight * len(self.cells)
-=======
     def getSurface(self) -> Surface:
         width = self._cols * self._cellW
         height = len(self._cells) * self._cellH
@@ -133,7 +92,6 @@ class Pattern:
 
     def getWidth(self) -> int:
         return self._cellW * self._cols
->>>>>>> Stashed changes
 
     def setBgColor(self, color) -> None:
         self.bgColor = color
@@ -143,19 +101,6 @@ class Pattern:
                 cell.setStateColor(CellState.DEAD, color)
 
     def setCellHeight(self, height: int) -> None:
-<<<<<<< Updated upstream
-        self.cellHeight = height
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
-                cell.setHeight(height)
-
-    def setCellWidth(self, width: int) -> None:
-        self.cellWidth = width
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
-=======
         self._cellH = height
         for y in range(len(self._cells)):
             for x in range(len(self._cells[y])):
@@ -167,19 +112,6 @@ class Pattern:
         for y in range(len(self._cells)):
             for x in range(len(self._cells[y])):
                 cell = self._cells[y][x]
->>>>>>> Stashed changes
-                cell.setHeight(width)
-
-    def getSurface(self) -> Surface:
-        width = self.rowMaxLen * self.cellWidth
-        height = len(self.cells) * self.cellHeight
-        surf = Surface((width, height))
-        surf.fill(self.bgColor)
-        for y in range(len(self.cells)):
-            for x in range(len(self.cells[y])):
-                cell = self.cells[y][x]
-                cell.draw(surf)
-        return surf
 
 
 class PatternMenuRow:

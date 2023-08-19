@@ -29,6 +29,10 @@ class MouseModes:
     DRAW = 0
     PAN = 1
 
+class MouseModes:
+    DRAW = 0
+    PAN = 1
+
 
 class ButtonID:
     CLEAR = "Clear"
