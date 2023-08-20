@@ -7,7 +7,7 @@ import time
 from pygame.font import Font
 from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE
 from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
-from gameoflife.consts import *
+from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP, MouseMode
 from gameoflife.config import Config
 from gameoflife.grid import Grid
 from gameoflife.button import RectButton, ButtonText
@@ -16,9 +16,6 @@ from gameoflife.pattern import Pattern, PatternMenu, PatternType
 from gameoflife.cell import getCellAtPoint
 from gameoflife.helpers import drawRectBorder
 
-class MouseMode:
-    DRAW = 0
-    PAN = 1
 
 class Game:
     def __init__(self) -> None:
@@ -31,7 +28,9 @@ class Game:
 
         self.buttons = []
         self.cfg = Config()
-        self.font = Font(None, 24)
+        self.clock = pygame.time.Clock()
+        self.fontSize = self.cfg.get('font.size', default=24)
+        self.font = Font(None, self.fontSize)
         self.fps = self.cfg.get("fps", default=5)
         self.height = self.cfg.get("screen.height")
         self.width = self.cfg.get("screen.width")
@@ -41,7 +40,6 @@ class Game:
         self.actionBarHeight = 70
         self.actionBarX = 0
         self.actionBarY = self.height - self.actionBarHeight
-        self.clock = pygame.time.Clock()
         self.cells = None
         self.cols = 200
         self.colsVisible = int(self.width / self.cellW)
@@ -161,10 +159,7 @@ class Game:
                 elif event.key == K_w: # up
                     if self.cameraY:
                         self.cameraY -= 1
-            elif (
-                event.type == MOUSEBUTTONUP
-                and event.dict.get("button") == MOUSEBUTTON_LCLICK
-            ) or (self.mouseButtonHold):
+            elif (event.type == MOUSEBUTTONUP and event.dict.get("button") == MOUSEBUTTON_LCLICK) or self.mouseButtonHold:
                 if event.type == MOUSEBUTTONUP and self.mouseButtonHold:
                     self.mouseButtonHold = False
                 (mX, mY) = pygame.mouse.get_pos()
@@ -229,6 +224,12 @@ class Game:
                     and self.zoom < self.zoomMax - self.zoomStep
                 ):
                     self.zoom += self.zoomStep
+                elif buttonCode == MOUSEBUTTON_RCLICK:
+                    (mX, mY) = pygame.mouse.get_pos()
+                    cellX = int(mX / self.cellW) + self.cameraX
+                    cellY = int(mY / self.cellH) + self.cameraY
+                    cell = getCellAtPoint(cellX, cellY, self.cells, self.rows)
+                    cell.setState(CellState.DEAD)
 
     async def loop(self) -> None:
         while self.running():

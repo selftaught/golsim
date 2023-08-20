@@ -7,5 +7,8 @@
         "width": 10,
         "height": 10
     },
-    "fps": 30
+    "fps": 30,
+    "font": {
+        "size": 24
+    }
 }

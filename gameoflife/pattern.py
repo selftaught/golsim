@@ -13,7 +13,7 @@ from gameoflife.colors import (
     RED_LIGHT1,
     WHITE,
 )
-from gameoflife.consts import *
+from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
 from gameoflife.helpers import drawRectBorder
 from pygame import Surface, draw, Rect, Color
 from pygame.font import Font
