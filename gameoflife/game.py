@@ -5,7 +5,7 @@ import pygame
 import time
 
 from pygame.font import Font
-from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_ESCAPE
+from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE
 from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
 from gameoflife.constvars import *
 from gameoflife.config import Config
@@ -50,12 +50,6 @@ class Game:
         self.cellSurf = pygame.Surface((self.cols * self.cellW, self.rows * self.cellH))
         self.viewCellX = int((self.cols / 2) - (self.colsVisible / 2))
         self.viewCellY = int((self.rows / 2) - (self.rowsVisible / 2))
-
-        print(
-            f"cols: {self.cols}, cols visible: {self.colsVisible}\nrows: {self.rows}, rows visible: {self.rowsVisible}"
-        )
-        print(f"viewCellX: {self.viewCellX}, viewCellY: {self.viewCellY}")
-        #
         self._clear = False
         self._next = False
         self._reset = False
@@ -97,10 +91,10 @@ class Game:
             RectButton(ButtonText.EXIT),
         ]
 
-        widthRemainder = self.width - (
+        widthRem = self.width - (
             (len(self.buttons) * (btnWidth + btnMargin)) - btnMargin
         )
-        buttonX = widthRemainder / 2
+        buttonX = widthRem / 2
         buttonY = (self.actionBarY) + ((self.actionBarHeight / 2) - btnHeight / 2)
 
         for button in self.buttons:
@@ -140,7 +134,6 @@ class Game:
 
     def eventLoop(self) -> None:
         for event in pygame.event.get():
-            # print(event)
             if self.patternsMenu.enabled():
                 handlerResp = self.patternsMenu.eventHandler(event)
                 if handlerResp:
@@ -155,8 +148,20 @@ class Game:
             if event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     self.patternSelected = None
-                if event.key == K_g:
+                elif event.key == K_g:
                     self.grid.toggle()
+                elif event.key == K_a: # left
+                    if self.viewCellX:
+                        self.viewCellX -= 1
+                elif event.key == K_d: # right
+                    if self.viewCellX < self.cols - self.colsVisible:
+                        self.viewCellX += 1
+                elif event.key == K_s: # down
+                    if self.viewCellY < self.rows - self.rowsVisible:
+                        self.viewCellY += 1
+                elif event.key == K_w: # up
+                    if self.viewCellY:
+                        self.viewCellY -= 1
             elif (
                 event.type == MOUSEBUTTONUP
                 and event.dict.get("button") == MOUSEBUTTON_LCLICK
@@ -248,56 +253,58 @@ class Game:
 
         if not self.stopped() or self.next():
             self.generation += 1
-            # if there are no changes from the previous generation,
-            # scan then entire cell array with quadratic complexity O(N^2)
+            self.cellsAlive = 0
+            self.cellsBirthed = 0
+            self.cellsDied = 0
+
+            allCellsDead = True
             changed = []
+            loopOneStart = time.time()
+
             for pos in range(self.rows * self.cols):
                 x = pos % self.rows
                 y = int(pos / self.rows)
-                (neighbors, alive) = getCellAndNeighbors(x, y, self.rows, self.cells)
-
+                alive = getAliveNeighbors(x, y, self.rows, self.cells)
                 cell = self.cells[pos]
 
                 # 1. Alive cells with < 2 alive neighbors die (under-population).
                 # 2. Alive cells with 2 or 3 neighbors survives to the next generation.
                 # 3. Alive cells with > 3 neighbors dies (over-population).
                 # 4. Dead cells with exactly 3 live neighbors becomes a live cell (reproduction).
-                if cell.getState() == CellState.ALIVE:
+                cellState = cell.getState()
+                if cellState == CellState.ALIVE:
                     if alive < 2:
                         cell.setNextState(CellState.DEAD)
+                        self.cellsDied += 1
                         changed.append(cell)
                     elif alive == 2 or alive == 3:
                         cell.setNextState(CellState.ALIVE)
+                        allCellsDead = False
+                        self.cellsAlive += 1
                         changed.append(cell)
                     elif alive > 3:
                         cell.setNextState(CellState.DEAD)
+                        self.cellsDied += 1
                         changed.append(cell)
-                elif cell.getState() == CellState.DEAD:
+                elif cellState == CellState.DEAD:
                     if alive == 3:
                         cell.setNextState(CellState.ALIVE)
+                        self.cellsBirthed += 1
                         changed.append(cell)
                     else:
                         cell.setNextState(CellState.DEAD)
                         changed.append(cell)
+            loopOneElapsed = time.time() - loopOneStart
 
-            allCellsDead = True
-            self.cellsAlive = 0
-            self.cellsBirthed = 0
-            self.cellsDied = 0
-
+            loopTwoStart = time.time()
             for cell in changed:
                 currState = cell.getState()
                 nextState = cell.getNextState()
                 cell.setState(nextState)
-                if nextState == CellState.ALIVE:
-                    self.cellsAlive += 1
-                    if currState == CellState.DEAD:
-                        self.cellsBirthed += 1
-                    allCellsDead = False
-                else:
-                    if currState == CellState.ALIVE:
-                        self.cellsDied += 1
 
+            loopTwoElapsed = time.time() - loopTwoStart
+            print('update() loop 1 took {:.2} seconds'.format(loopOneElapsed))
+            print('update() loop 2 took {:.2} seconds'.format(loopTwoElapsed))
             # if allCellsDead:
             #     self.stop()
 
@@ -307,7 +314,6 @@ class Game:
 
         for y in range(self.rowsVisible):
             for x in range(self.colsVisible):
-                #cell = self.cells[self.viewCellY + y][self.viewCellX + x]
                 cell = getCellAtPoint(self.viewCellX + x, self.viewCellY + y, self.cells, self.rows)
                 cell.draw(self.cellSurf)
 

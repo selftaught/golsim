@@ -1,5 +1,6 @@
 import random
 import pygame
+import time
 
 from pygame import Rect, Surface
 from typing import Union, List, Tuple
@@ -69,37 +70,39 @@ class Cell:
         self._rect.width = width
         self.surface = Surface(self._rect.size)
 
-def getCellAtPoint(x, y, cells, rows) -> Cell:
+def getCellAtPoint(x, y, cells, rows, count=0) -> Cell:
     pos = rows * y + x
-    numCells = len(cells)
-    if pos < numCells and x >= 0:
+    if not count:
+        count = rows * rows #len(cells)
+    if pos < count and x >= 0:
         return cells[pos]
-    raise Exception(f"cell point outside of boundary: (x: {x}, y: {y}, rows: {rows}, numCells: {len(cells)})")
+    return None
+    #raise Exception(f"cell point outside of boundary: (x: {x}, y: {y}, rows: {rows}, numCells: {len(cells)})")
 
-def getCellAndNeighbors(x: int, y: int, dimension:int, cells: list) -> Tuple[List[Cell], int]:
-    # dimension is the number of rows / columns that make up the cells array
+def getCellStateAtPoint(x, y, cells, rows, count=0) -> int:
+    pos = rows * y + x
+    try:
+        return cells[pos].getState()
+    except:
+        pass
+    return 0
+
+def getAliveNeighbors(x:int, y:int, dimension:int, cells:list) -> int:
+    # dimension is the number of rows / columns that make up the cell array.
     # a 3x3 cell array would have a dimension of 3, 2x2 would have a dimension of 2, etc
     alive = 0
-    r = [
-        getCellAtPoint(x-1, y-1, cells, dimension) if x > 0 and y > 0 else None,
-        getCellAtPoint(x, y-1, cells, dimension) if y > 0 else None,
-        getCellAtPoint(x+1, y-1, cells, dimension) if x < dimension - 1 and y > 0 else None,
-        getCellAtPoint(x-1, y, cells, dimension) if x > 0 else None,
-        getCellAtPoint(x, y, cells, dimension),
-        getCellAtPoint(x+1, y, cells, dimension) if x < dimension - 1 else None,
-        getCellAtPoint(x-1, y+1, cells, dimension) if x > 0 and y < dimension - 1 else None,
-        getCellAtPoint(x, y+1, cells, dimension) if y < dimension - 1 else None,
-        getCellAtPoint(x+1, y+1, cells, dimension) if x < dimension - 1 and y < dimension - 1 else None,
-    ]
+    count = len(cells)
 
-    for i in range(len(r)):
-        if i == 4:
-            continue
-        alive += r[i].getState() if r[i] is not None else 0
-        if alive >= 4:
-            break
+    alive += getCellStateAtPoint(x-1, y-1, cells, dimension, count=count)
+    alive += getCellStateAtPoint(x, y-1, cells, dimension, count=count)
+    alive += getCellStateAtPoint(x+1, y-1, cells, dimension, count=count)
+    alive += getCellStateAtPoint(x-1, y, cells, dimension, count=count)
+    alive += getCellStateAtPoint(x+1, y, cells, dimension, count=count)
+    alive += getCellStateAtPoint(x-1, y+1, cells, dimension, count=count)
+    alive += getCellStateAtPoint(x, y+1, cells, dimension, count=count)
+    alive += getCellStateAtPoint(x+1, y+1, cells, dimension, count=count)
 
-    return (r, alive)
+    return alive
 
 def printCells(cells, rows) -> None:
     output = ''

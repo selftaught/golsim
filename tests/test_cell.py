@@ -1,5 +1,5 @@
 from typing import Union
-from gameoflife.cell import Cell, CellState, getCellAtPoint, getCellAndNeighbors, printCells
+from gameoflife.cell import Cell, CellState, getCellAtPoint, getAliveNeighbors, printCells
 from pygame import Rect
 
 import pytest
@@ -89,7 +89,7 @@ class TestCell:
         with pytest.raises(Exception, match='cell point outside of boundary'):
             getCellAtPoint(-1, 2, cells, rows)
 
-    def testGetCellAndNeighbors(self):
+    def testGetAliveNeighbors(self):
         cells = [
             Cell(0, 0, 10, 10, CellState.DEAD),
             Cell(1, 0, 10, 10, CellState.DEAD),
@@ -102,8 +102,5 @@ class TestCell:
             Cell(2, 2, 10, 10, CellState.DEAD),
         ]
 
-        (cells, alive) = getCellAndNeighbors(1, 1, 3, cells)
-        assert alive == 0
-
-        (cells, alive) = getCellAndNeighbors(0, 0, 3, cells)
-        assert alive == 1
+        assert getAliveNeighbors(1, 1, 3, cells) == 0
+        assert getAliveNeighbors(0, 0, 3, cells) == 1
