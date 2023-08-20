@@ -7,7 +7,7 @@ import time
 from pygame.font import Font
 from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE
 from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
-from gameoflife.constvars import *
+from gameoflife.consts import *
 from gameoflife.config import Config
 from gameoflife.grid import Grid
 from gameoflife.button import RectButton, ButtonText
@@ -16,7 +16,7 @@ from gameoflife.pattern import Pattern, PatternMenu, PatternType
 from gameoflife.cell import getCellAtPoint
 from gameoflife.helpers import drawRectBorder
 
-class MouseModes:
+class MouseMode:
     DRAW = 0
     PAN = 1
 
@@ -55,8 +55,7 @@ class Game:
         self._next = False
         self._running = True
         self._stopped = True
-        self.patternsMenu = PatternMenu(50, 50, maxHeight=400)
-        self.patternsMenu.setFont(self.font)
+        self.patternsMenu = PatternMenu(50, 50, maxHeight=400, font=self.font)
         self.pattern = None
         self.generation = 0
         self.cells = []
@@ -65,7 +64,6 @@ class Game:
         self.cellsDied = 0
         self.mouseButtonHold = False
 
-        # Zoom
         self.zoom = 1
         self.zoomMax = 10
         self.zoomMin = 1

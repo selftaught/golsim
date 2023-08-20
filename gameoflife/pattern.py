@@ -13,7 +13,7 @@ from gameoflife.colors import (
     RED_LIGHT1,
     WHITE,
 )
-from gameoflife.constvars import *
+from gameoflife.consts import *
 from gameoflife.helpers import drawRectBorder
 from pygame import Surface, draw, Rect, Color
 from pygame.font import Font
@@ -271,8 +271,6 @@ class PatternMenu:
 
         if self._scrollBarEnabled:
             self._rect.w += self._scrollBarWidth
-
-        # self._closeBtn.setX(self._rect.x + self._rect.w - 15)
 
         self._rowsSurface = Surface((widest + (self._padding * 2), yOffset))
         self._rowsSurface.fill(self._bgColor)
