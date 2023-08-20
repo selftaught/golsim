@@ -1,9 +1,8 @@
-import random
 import pygame
 import time
 
 from pygame import Rect, Surface
-from typing import Union, List, Tuple
+from typing import List, Tuple, Union
 
 
 class CellState:
@@ -70,17 +69,16 @@ class Cell:
         self._rect.width = width
         self.surface = Surface(self._rect.size)
 
-def getCellAtPoint(x, y, cells, rows, count=0) -> Cell:
-    pos = rows * y + x
-    if not count:
-        count = rows * rows #len(cells)
+def getCellAtPoint(x, y, cells, dimension) -> Cell:
+    pos = dimension * y + x
+    count = len(cells)
     if pos < count and x >= 0:
         return cells[pos]
     return None
     #raise Exception(f"cell point outside of boundary: (x: {x}, y: {y}, rows: {rows}, numCells: {len(cells)})")
 
-def getCellStateAtPoint(x, y, cells, rows, count=0) -> int:
-    pos = rows * y + x
+def getCellStateAtPoint(x, y, cells, dimension) -> int:
+    pos = dimension * y + x
     try:
         return cells[pos].getState()
     except:
@@ -88,19 +86,15 @@ def getCellStateAtPoint(x, y, cells, rows, count=0) -> int:
     return 0
 
 def getAliveNeighbors(x:int, y:int, dimension:int, cells:list) -> int:
-    # dimension is the number of rows / columns that make up the cell array.
-    # a 3x3 cell array would have a dimension of 3, 2x2 would have a dimension of 2, etc
     alive = 0
-    count = len(cells)
-
-    alive += getCellStateAtPoint(x-1, y-1, cells, dimension, count=count)
-    alive += getCellStateAtPoint(x, y-1, cells, dimension, count=count)
-    alive += getCellStateAtPoint(x+1, y-1, cells, dimension, count=count)
-    alive += getCellStateAtPoint(x-1, y, cells, dimension, count=count)
-    alive += getCellStateAtPoint(x+1, y, cells, dimension, count=count)
-    alive += getCellStateAtPoint(x-1, y+1, cells, dimension, count=count)
-    alive += getCellStateAtPoint(x, y+1, cells, dimension, count=count)
-    alive += getCellStateAtPoint(x+1, y+1, cells, dimension, count=count)
+    alive += getCellStateAtPoint(x-1, y-1, cells, dimension)
+    alive += getCellStateAtPoint(x, y-1, cells, dimension)
+    alive += getCellStateAtPoint(x+1, y-1, cells, dimension)
+    alive += getCellStateAtPoint(x-1, y, cells, dimension)
+    alive += getCellStateAtPoint(x+1, y, cells, dimension)
+    alive += getCellStateAtPoint(x-1, y+1, cells, dimension)
+    alive += getCellStateAtPoint(x, y+1, cells, dimension)
+    alive += getCellStateAtPoint(x+1, y+1, cells, dimension)
 
     return alive
 

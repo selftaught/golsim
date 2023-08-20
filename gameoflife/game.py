@@ -32,6 +32,7 @@ class Game:
         self.buttons = []
         self.cfg = Config()
         self.font = Font(None, 24)
+        self.fps = self.cfg.get("fps", default=5)
         self.height = self.cfg.get("screen.height")
         self.width = self.cfg.get("screen.width")
         self.screen = pygame.display.set_mode([self.width, self.height])
@@ -48,23 +49,21 @@ class Game:
         self.rowsVisible = int(self.height / self.cellH)
         self.grid = Grid(self.colsVisible, self.rowsVisible, self.cellW, self.cellH)
         self.cellSurf = pygame.Surface((self.cols * self.cellW, self.rows * self.cellH))
-        self.viewCellX = int((self.cols / 2) - (self.colsVisible / 2))
-        self.viewCellY = int((self.rows / 2) - (self.rowsVisible / 2))
+        self.cameraX = int((self.cols / 2) - (self.colsVisible / 2))
+        self.cameraY = int((self.rows / 2) - (self.rowsVisible / 2))
         self._clear = False
         self._next = False
-        self._reset = False
         self._running = True
         self._stopped = True
         self.patternsMenu = PatternMenu(50, 50, maxHeight=400)
         self.patternsMenu.setFont(self.font)
-        self.patterns = []
-        self.patternSelected = None
+        self.pattern = None
         self.generation = 0
         self.cells = []
         self.cellsAlive = 0
         self.cellsBirthed = 0
         self.cellsDied = 0
-        self.mouseButtonHeldDown = False
+        self.mouseButtonHold = False
 
         # Zoom
         self.zoom = 1
@@ -83,7 +82,6 @@ class Game:
         btnWidth = 100
 
         self.buttons = [
-            # RectButton(ButtonText.RESET),
             RectButton(ButtonText.CLEAR),
             RectButton(ButtonText.START),
             RectButton(ButtonText.NEXT),
@@ -112,14 +110,16 @@ class Game:
             y = int(i / self.rows)
             self.cells.append(Cell(x, y, self.cellW, self.cellH, CellState.DEAD))
 
-    def initPattern(self, path: str, patternType: PatternType) -> None:
+    def initPatternsByType(self, path: str, type: PatternType) -> List[Pattern]:
+        patterns:List[Pattern] = []
         for p in glob.glob(path):
-            pattern = Pattern(path.split("/")[-1], p, patternType)
+            pattern = Pattern(path.split("/")[-1], p, type)
             if pattern.getRows():
-                self.patterns.append(pattern)
+                patterns.append(pattern)
+        return patterns
 
     def initPatterns(self) -> None:
-        patternDirTypes = {
+        patternTypes = {
             "oscillators": PatternType.Oscillator,
             "spaceships": PatternType.Spacehship,
             "flipflops": PatternType.FlipFlop,
@@ -127,47 +127,48 @@ class Game:
             "still-lifes": PatternType.StillLife,
         }
 
-        for patternDir, patternType in patternDirTypes.items():
-            self.initPattern(f"patterns/{patternDir}/*", patternType)
+        patterns = []
+        for name, type in patternTypes.items():
+            patterns += self.initPatternsByType(f"patterns/{name}/*", type)
 
-        self.patternsMenu.setPatterns(self.patterns)
+        self.patternsMenu.setPatterns(patterns)
 
     def eventLoop(self) -> None:
         for event in pygame.event.get():
             if self.patternsMenu.enabled():
-                handlerResp = self.patternsMenu.eventHandler(event)
-                if handlerResp:
-                    self.mouseButtonHeldDown = False
-                    if isinstance(handlerResp, Pattern):
-                        self.patternSelected = handlerResp
-                        self.patternSelected.setCellHeight(self.cellH)
-                        self.patternSelected.setCellWidth(self.cellW)
+                ret = self.patternsMenu.eventHandler(event)
+                if ret:
+                    self.mouseButtonHold = False
+                    if isinstance(ret, Pattern):
+                        self.pattern = ret
+                        self.pattern.setCellHeight(self.cellH)
+                        self.pattern.setCellWidth(self.cellW)
                     break
             if event.type == pygame.QUIT:
                 self.quit()
             if event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
-                    self.patternSelected = None
+                    self.pattern = None
                 elif event.key == K_g:
                     self.grid.toggle()
                 elif event.key == K_a: # left
-                    if self.viewCellX:
-                        self.viewCellX -= 1
+                    if self.cameraX:
+                        self.cameraX -= 1
                 elif event.key == K_d: # right
-                    if self.viewCellX < self.cols - self.colsVisible:
-                        self.viewCellX += 1
+                    if self.cameraX < self.cols - self.colsVisible:
+                        self.cameraX += 1
                 elif event.key == K_s: # down
-                    if self.viewCellY < self.rows - self.rowsVisible:
-                        self.viewCellY += 1
+                    if self.cameraY < self.rows - self.rowsVisible:
+                        self.cameraY += 1
                 elif event.key == K_w: # up
-                    if self.viewCellY:
-                        self.viewCellY -= 1
+                    if self.cameraY:
+                        self.cameraY -= 1
             elif (
                 event.type == MOUSEBUTTONUP
                 and event.dict.get("button") == MOUSEBUTTON_LCLICK
-            ) or (self.mouseButtonHeldDown):
-                if event.type == MOUSEBUTTONUP and self.mouseButtonHeldDown:
-                    self.mouseButtonHeldDown = False
+            ) or (self.mouseButtonHold):
+                if event.type == MOUSEBUTTONUP and self.mouseButtonHold:
+                    self.mouseButtonHold = False
                 (mX, mY) = pygame.mouse.get_pos()
                 for button in self.buttons:
                     if button.clicked(mX, mY):
@@ -189,17 +190,15 @@ class Game:
                             button.setText(ButtonText.START)
                         elif btnTxt == ButtonText.PATTERNS:
                             self.patternsMenu.toggle()
-                        elif btnTxt == ButtonText.RESET:
-                            self.reset()
                         elif btnTxt == ButtonText.EXIT:
                             self.quit()
 
                 if mY < self.actionBarY:
-                    cellX = int(mX / self.cellW) + self.viewCellX
-                    cellY = int(mY / self.cellH) + self.viewCellY
+                    cellX = int(mX / self.cellW) + self.cameraX
+                    cellY = int(mY / self.cellH) + self.cameraY
                     try:
-                        if self.patternSelected:
-                            selectedCells = self.patternSelected.getCells()
+                        if self.pattern:
+                            selectedCells = self.pattern.getCells()
                             for y in range(len(selectedCells)):
                                 for x in range(len(selectedCells[y])):
                                     selectedCell = selectedCells[y][x]
@@ -219,7 +218,7 @@ class Game:
             ):
                 (mX, mY) = pygame.mouse.get_pos()
                 if mY < self.actionBarY:
-                    self.mouseButtonHeldDown = True
+                    self.mouseButtonHold = True
             elif event.type == MOUSEBUTTONUP:
                 buttonCode = event.dict.get("button")
                 if (
@@ -238,11 +237,11 @@ class Game:
             self.eventLoop()
             self.update()
             self.draw()
-            self.clock.tick(self.cfg.get("fps", default=5))
+            self.clock.tick(self.fps)
         pygame.quit()
 
     def update(self) -> None:
-        if self.isReset() or self.cleared():
+        if self.cleared():
             self.initCells()
 
         for button in self.buttons:
@@ -257,10 +256,8 @@ class Game:
             self.cellsBirthed = 0
             self.cellsDied = 0
 
-            allCellsDead = True
             changed = []
-            loopOneStart = time.time()
-
+            #loopOneStart = time.time()
             for pos in range(self.rows * self.cols):
                 x = pos % self.rows
                 y = int(pos / self.rows)
@@ -273,18 +270,13 @@ class Game:
                 # 4. Dead cells with exactly 3 live neighbors becomes a live cell (reproduction).
                 cellState = cell.getState()
                 if cellState == CellState.ALIVE:
-                    if alive < 2:
+                    if alive < 2 or alive > 3:
                         cell.setNextState(CellState.DEAD)
                         self.cellsDied += 1
                         changed.append(cell)
                     elif alive == 2 or alive == 3:
                         cell.setNextState(CellState.ALIVE)
-                        allCellsDead = False
                         self.cellsAlive += 1
-                        changed.append(cell)
-                    elif alive > 3:
-                        cell.setNextState(CellState.DEAD)
-                        self.cellsDied += 1
                         changed.append(cell)
                 elif cellState == CellState.DEAD:
                     if alive == 3:
@@ -294,44 +286,43 @@ class Game:
                     else:
                         cell.setNextState(CellState.DEAD)
                         changed.append(cell)
-            loopOneElapsed = time.time() - loopOneStart
-
-            loopTwoStart = time.time()
+            # loopOneElapsed = time.time() - loopOneStart
+            # loopTwoStart = time.time()
             for cell in changed:
                 currState = cell.getState()
                 nextState = cell.getNextState()
                 cell.setState(nextState)
-
-            loopTwoElapsed = time.time() - loopTwoStart
-            print('update() loop 1 took {:.2} seconds'.format(loopOneElapsed))
-            print('update() loop 2 took {:.2} seconds'.format(loopTwoElapsed))
-            # if allCellsDead:
-            #     self.stop()
+            # loopTwoElapsed = time.time() - loopTwoStart
+            # print('update() loop 1 took {:.2} seconds'.format(loopOneElapsed))
+            # print('update() loop 2 took {:.2} seconds'.format(loopTwoElapsed))
+            if not self.cellsAlive:
+                self.stop()
 
     def draw(self) -> None:
         self.screen.fill(WHITE)
-        self.cellSurf.fill(WHITE)
 
         for y in range(self.rowsVisible):
             for x in range(self.colsVisible):
-                cell = getCellAtPoint(self.viewCellX + x, self.viewCellY + y, self.cells, self.rows)
+                cellX = self.cameraX + x
+                cellY = self.cameraY + y
+                cell = getCellAtPoint(cellX, cellY, self.cells, self.rows)
                 cell.draw(self.cellSurf)
 
-        visibleCellSurfaceRect = pygame.Rect(
-            self.viewCellX * self.cellW,
-            self.viewCellY * self.cellH,
-            self.colsVisible * self.cellW,
-            self.rowsVisible * self.cellH,
-        )
-        self.screen.blit(self.cellSurf, (0, 0), visibleCellSurfaceRect)
+        cellSurfX = self.cameraX * self.cellW
+        cellSurfY = self.cameraY * self.cellH
+        cellSurfW = self.colsVisible * self.cellW
+        cellSurfH = self.rowsVisible * self.cellH
+        cellSurfR = pygame.Rect(cellSurfX, cellSurfY, cellSurfW, cellSurfH)
+
+        self.screen.blit(self.cellSurf, (0, 0), cellSurfR)
         self.grid.draw(self.screen)
         self.drawActionBar()
 
         if self.patternsMenu.enabled():
             self.patternsMenu.draw(self.screen)
 
-        if self.patternSelected and pygame.mouse.get_pos()[1] < self.actionBarY:
-            patternSurf = self.patternSelected.getSurface()
+        if self.pattern and pygame.mouse.get_pos()[1] < self.actionBarY:
+            patternSurf = self.pattern.getSurface()
             self.screen.blit(patternSurf, pygame.mouse.get_pos())
 
         pygame.display.update()
@@ -370,14 +361,14 @@ class Game:
 
         zoomText = self.font.render("Zoom: {:.2f}".format(self.zoom), True, BLACK)
         self.screen.blit(zoomText, (self.width - 100, self.actionBarY + 5))
-        vcText = self.font.render(
-            "visible cols: {}".format(self.colsVisible), True, BLACK
-        )
-        self.screen.blit(vcText, (self.width - 130, self.actionBarY + 25))
-        vrText = self.font.render(
-            "visible rows: {}".format(self.rowsVisible), True, BLACK
-        )
-        self.screen.blit(vrText, (self.width - 130, self.actionBarY + 45))
+        # vcText = self.font.render(
+        #     "visible cols: {}".format(self.colsVisible), True, BLACK
+        # )
+        # self.screen.blit(vcText, (self.width - 130, self.actionBarY + 25))
+        # vrText = self.font.render(
+        #     "visible rows: {}".format(self.rowsVisible), True, BLACK
+        # )
+        # self.screen.blit(vrText, (self.width - 130, self.actionBarY + 45))
 
     def clear(self) -> None:
         self._clear = True
@@ -395,14 +386,6 @@ class Game:
         val = self._next
         self._next = False
         return val
-
-    def isReset(self) -> bool:
-        val = self._reset
-        self._reset = False
-        return val
-
-    def reset(self) -> None:
-        self._reset = True
 
     def running(self) -> bool:
         return self._running
