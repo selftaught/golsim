@@ -131,6 +131,7 @@ class Game:
 
     def eventLoop(self) -> None:
         for event in pygame.event.get():
+            print(event)
             (mX, mY) = pygame.mouse.get_pos()
             if self._patternsMenu.enabled():
                 ret = self._patternsMenu.eventHandler(event)
@@ -144,7 +145,7 @@ class Game:
             if event.type == pygame.QUIT:
                 self.quit()
 
-            if event.type == KEYDOWN:
+            elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     self._pattern = None
                 elif event.key == K_g:
@@ -177,9 +178,6 @@ class Game:
                         self._cameraY -= 1
 
             elif (event.type == MOUSEBUTTONDOWN and event.dict.get("button") == MOUSEBUTTON_LCLICK):
-
-                # if event.type == MOUSEBUTTONUP and self._mouseButtonHold:
-                #     self._mouseButtonHold = False
 
                 if mY < self._actionBarY:
                     self._mouseButtonHold = True
@@ -236,7 +234,7 @@ class Game:
                     self.zoom -= self.zoomStep
                 elif (
                     buttonCode == MOUSEBUTTON_SCROLL_UP
-                    and self.zoom < self.zooamMax - self.zoomStep
+                    and self.zoom < self.zoomMax - self.zoomStep
                 ):
                     self.zoom += self.zoomStep
                 elif buttonCode == MOUSEBUTTON_RCLICK:
