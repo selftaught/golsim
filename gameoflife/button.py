@@ -40,7 +40,7 @@ class BaseButton:
         self._bgColor = bgColor
         self._hoverBgColor = bgColor
         self._hoverTextColor = None
-        self._border = True
+        self._border = border
         self._borderColor = BLACK
         self._cursor = pygame.SYSTEM_CURSOR_ARROW
 
