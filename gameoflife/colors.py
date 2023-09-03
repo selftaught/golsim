@@ -2,6 +2,7 @@ from pygame import Color
 
 BLACK = Color(0, 0, 0)
 BLUE = Color(0, 0, 255)
+GREEN = Color(0, 255, 0)
 GREY = Color(150, 150, 150)
 GREY_DARK1 = Color(169, 169, 169)
 GREY_DARK2 = Color(144, 144, 144)

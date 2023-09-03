@@ -8,7 +8,7 @@ from pygame.event import Event
 from pygame.font import Font
 from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE, TEXTINPUT, MOUSEMOTION
 from gameoflife.button import BaseButton
-from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
+from gameoflife.colors import BLUE, BLACK, GREEN, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
 from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP, MouseMode
 from gameoflife.config import Config
 from gameoflife.grid import Grid
@@ -50,8 +50,14 @@ class InputModeManager:
         return False
 
     def draw(self, surface:Surface) -> None:
+        modeRect = None
         for btn in self._buttons:
+            btnId = btn.getId()
             btn.draw(surface)
+            if btnId == self._mode:
+                modeRect = btn.getRect()
+        if modeRect:
+            drawRectBorder(surface, modeRect, GREEN)
 
     def mode(self) -> str:
         return self._mode
