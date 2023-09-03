@@ -4,18 +4,77 @@ import glob
 import pygame
 import time
 
+from pygame.event import Event
 from pygame.font import Font
 from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE, TEXTINPUT, MOUSEMOTION
+from gameoflife.button import BaseButton
 from gameoflife.colors import BLUE, BLACK, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
 from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP, MouseMode
 from gameoflife.config import Config
 from gameoflife.grid import Grid
-from gameoflife.button import RectButton, ButtonText
+from gameoflife.button import RectButton, ButtonID
 from gameoflife.cell import *
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 from gameoflife.cell import getCellAtPoint
 from gameoflife.helpers import drawRectBorder
 
+
+class InputMode:
+    DRAW = ButtonID.DRAW
+    PAN = ButtonID.PAN
+
+class InputModeManager:
+    def __init__(self, btnWidth:int=30, btnHeight:int=30, btnMargin:int=10, btnStartX:int=0, btnStartY:int=0) -> None:
+        self._btnMargin = btnMargin
+        self._btnHeight = btnHeight
+        self._btnWidth = btnWidth
+        self._btnStartX = btnStartX
+        self._btnStartY = btnStartY
+        self._buttons:List[BaseButton] = []
+        self._mode:Union[str, None] = None
+
+    def addMode(self, mode:str, imagePath:str=None, active:bool=False) -> None:
+        btnX = (len(self._buttons) * self._btnWidth + self._btnMargin) + self._btnStartX
+        rect = Rect(btnX, self._btnStartY, self._btnWidth, self._btnHeight)
+        button = RectButton(mode, rect, imagePath=imagePath)
+        self._buttons.append(button)
+        if active:
+            self._mode = mode
+
+    def eventHandler(self, event:Event) -> bool:
+        if (event.type == MOUSEBUTTONDOWN and event.dict.get("button") == MOUSEBUTTON_LCLICK):
+            for btn in self._buttons:
+                if btn.clicked():
+                    self._mode = btn.getId()
+                    return True
+        return False
+
+    def draw(self, surface:Surface) -> None:
+        for btn in self._buttons:
+            btn.draw(surface)
+
+    def mode(self) -> str:
+        return self._mode
+
+    def update(self) -> None:
+        for btn in self._buttons:
+            btn.update()
+
+    def setBtnWidth(self, width:int):
+        self._btnWidth = width
+
+    def setBtnHeight(self, height:int):
+        self._btnHeight = height
+
+    def setBtnStartX(self, x:int) -> None:
+        self._btnStartX = x
+
+    def setBtnStartY(self, y:int) -> None:
+        self._btnStartY = y
+
+    def setBtnStartCoords(self, coords:Tuple[int, int]) -> None:
+        self._btnStartX = coords[0]
+        self._btnStartY = coords[1]
 
 class Game:
     def __init__(self) -> None:
@@ -61,6 +120,7 @@ class Game:
         self._cellsBirthed = 0
         self._cellsDied = 0
         self._mouseButtonHold = False
+        self._inputModeMngr = InputModeManager()
 
         self.zoom = 1
         self.zoomMax = 10
@@ -78,26 +138,27 @@ class Game:
         btnWidth = 100
 
         self._buttons = [
-            RectButton(ButtonText.CLEAR),
-            RectButton(ButtonText.START),
-            RectButton(ButtonText.NEXT),
-            RectButton(ButtonText.PATTERNS),
-            RectButton(ButtonText.EXIT),
+            RectButton(ButtonID.CLEAR),
+            RectButton(ButtonID.START),
+            RectButton(ButtonID.NEXT),
+            RectButton(ButtonID.PATTERNS),
+            RectButton(ButtonID.EXIT),
         ]
 
-        widthRem = self._width - (
-            (len(self._buttons) * (btnWidth + btnMargin)) - btnMargin
-        )
+        widthRem = self._width - ((len(self._buttons) * (btnWidth + btnMargin)) - btnMargin)
         buttonX = widthRem / 2
         buttonY = (self._actionBarY) + ((self._actionBarHeight / 2) - btnHeight / 2)
 
         for button in self._buttons:
             button.setFont(self._font)
             button.setHoverBackgroundColor(GREY_DARK2)
-            button.setBorderColor(GREY_DARK2)
             if isinstance(button, RectButton):
                 button.setRect(pygame.Rect(buttonX, buttonY, btnWidth, btnHeight))
             buttonX += btnWidth + btnMargin
+
+        self._inputModeMngr.setBtnStartCoords((buttonX, buttonY))
+        self._inputModeMngr.addMode(ButtonID.DRAW, imagePath="images/draw.png", active=True)
+        self._inputModeMngr.addMode(ButtonID.PAN, imagePath="images/pan.png")
 
     def initCells(self) -> None:
         self._cells = []
@@ -131,7 +192,7 @@ class Game:
 
     def eventLoop(self) -> None:
         for event in pygame.event.get():
-            print(event)
+            #print(event)
             (mX, mY) = pygame.mouse.get_pos()
             if self._patternsMenu.enabled():
                 ret = self._patternsMenu.eventHandler(event)
@@ -141,10 +202,10 @@ class Game:
                         self._pattern = ret
                         self._pattern.setCellHeight(self._cellH)
                         self._pattern.setCellWidth(self._cellW)
-                    continue
-            if event.type == pygame.QUIT:
+            elif self._inputModeMngr.eventHandler(event):
+                pass
+            elif event.type == pygame.QUIT:
                 self.quit()
-
             elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     self._pattern = None
@@ -162,7 +223,6 @@ class Game:
                 elif event.key == K_w: # up
                     if self._cameraY:
                         self._cameraY -= 1
-
             elif event.type == TEXTINPUT:
                 if event.dict.get('text') == 'a':
                     if self._cameraX:
@@ -176,33 +236,31 @@ class Game:
                 elif event.dict.get('text') == 'w':
                     if self._cameraY:
                         self._cameraY -= 1
-
             elif (event.type == MOUSEBUTTONDOWN and event.dict.get("button") == MOUSEBUTTON_LCLICK):
-
                 if mY < self._actionBarY:
                     self._mouseButtonHold = True
 
                 for button in self._buttons:
-                    if button.clicked(mX, mY):
-                        btnTxt = button.getText()
-                        if btnTxt == ButtonText.CLEAR:
+                    if button.clicked():
+                        btnId = button.getId()
+                        if btnId == ButtonID.CLEAR:
                             self.clear()
                             for b in self._buttons:
-                                if b.getText() == ButtonText.STOP:
-                                    b.setText(ButtonText.START)
+                                if b.getId() == ButtonID.STOP:
+                                    b.setId(ButtonID.START)
                                     self.stop()
                                     break
-                        elif btnTxt == ButtonText.NEXT:
+                        elif btnId == ButtonID.NEXT:
                             self._next = True
-                        elif btnTxt == ButtonText.START:
+                        elif btnId == ButtonID.START:
                             self.start()
-                            button.setText(ButtonText.STOP)
-                        elif btnTxt == ButtonText.STOP:
+                            button.setId(ButtonID.STOP)
+                        elif btnId == ButtonID.STOP:
                             self.stop()
-                            button.setText(ButtonText.START)
-                        elif btnTxt == ButtonText.PATTERNS:
+                            button.setId(ButtonID.START)
+                        elif btnId == ButtonID.PATTERNS:
                             self._patternsMenu.toggle()
-                        elif btnTxt == ButtonText.EXIT:
+                        elif btnId == ButtonID.EXIT:
                             self.quit()
 
                 if mY < self._actionBarY:
@@ -224,7 +282,6 @@ class Game:
                             cell.setState(CellState.ALIVE)
                     except Exception as e:
                         print(e)
-
             elif event.type == MOUSEBUTTONUP:
                 buttonCode = event.dict.get("button")
                 if (
@@ -244,7 +301,6 @@ class Game:
                     cell.setState(CellState.DEAD)
                 elif buttonCode == MOUSEBUTTON_LCLICK:
                     self._mouseButtonHold = False
-
             elif event.type == MOUSEMOTION:
                 if self._mouseButtonHold:
                     if mY < self._actionBarY:
@@ -267,6 +323,8 @@ class Game:
 
         for button in self._buttons:
             button.update()
+
+        self._inputModeMngr.update()
 
         if self._patternsMenu.enabled():
             self._patternsMenu.update()
@@ -329,15 +387,15 @@ class Game:
                 cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                 cell.draw(self._cellsurf)
 
-        cellSurfX = self._cameraX * self._cellW
-        cellSurfY = self._cameraY * self._cellH
-        cellSurfW = self._colsVisible * self._cellW
-        cellSurfH = self._rowsVisible * self._cellH
-        cellSurfR = pygame.Rect(cellSurfX, cellSurfY, cellSurfW, cellSurfH)
+        cellSurfRect = pygame.Rect(
+            self._cameraX * self._cellW,
+            self._cameraY * self._cellH,
+            self._colsVisible * self._cellW,
+            self._rowsVisible * self._cellH
+        )
 
-        self._screen.blit(self._cellsurf, (0, 0), cellSurfR)
+        self._screen.blit(self._cellsurf, (0, 0), cellSurfRect)
         self._grid.draw(self._screen)
-        self.drawActionBar()
 
         if self._patternsMenu.enabled():
             self._patternsMenu.draw(self._screen)
@@ -345,6 +403,8 @@ class Game:
         if self._pattern and pygame.mouse.get_pos()[1] < self._actionBarY:
             patternSurf = self._pattern.getSurface()
             self._screen.blit(patternSurf, pygame.mouse.get_pos())
+
+        self.drawActionBar()
 
         pygame.display.update()
 
@@ -362,6 +422,8 @@ class Game:
 
         for button in self._buttons:
             button.draw(self._screen)
+
+        self._inputModeMngr.draw(self._screen)
 
         stats = [
             f"Alive: {self._cellsAlive}",

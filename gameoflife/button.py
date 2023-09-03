@@ -11,7 +11,7 @@ from pygame.rect import Rect
 from typing import Union
 
 
-class ButtonText:
+class ButtonID:
     CLEAR = "Clear"
     EXIT = "Exit"
     NEXT = "Next"
@@ -19,71 +19,72 @@ class ButtonText:
     START = "Start"
     STOP = "Stop"
     PATTERNS = "Patterns"
+    DRAW = "Draw"
+    PAN = "Pan"
 
 
 class BaseButton:
     def __init__(
         self,
-        text: str,
+        id: str,
         x: int,
         y: int,
         bgColor: Color = GREY,
         border: bool = True,
         borderColor: Color = BLACK,
     ) -> None:
-        self.text = text
-        self.x = x
-        self.y = y
-        self.currBgColor = bgColor
-        self.bgColor = bgColor
-        self.textColor = None
-        self.hoverBgColor = bgColor
-        self.hoverTextColor = None
-        self.border = True
-        self.borderColor = BLACK
-        self.cursor = pygame.SYSTEM_CURSOR_ARROW
+        self._id = id
+        self._x = x
+        self._y = y
+        self._currBgColor = bgColor
+        self._bgColor = bgColor
+        self._hoverBgColor = bgColor
+        self._hoverTextColor = None
+        self._border = True
+        self._borderColor = BLACK
+        self._cursor = pygame.SYSTEM_CURSOR_ARROW
 
     def getBackgroundColor(self) -> Color:
-        return self.bgColor
+        return self._bgColor
 
     def getBorderColor(self) -> Color:
-        return self.borderColor
+        return self._borderColor
 
     def getHoverBackgroundColor(self) -> Color:
-        return self.hoverBgColor
+        return self._hoverBgColor
 
     def getX(self) -> int:
-        return self.x
+        return self._x
 
     def getY(self) -> int:
-        return self.y
+        return self._y
 
-    def getText(self) -> str:
-        return self.text
+    def getId(self) -> str:
+        return self._id
 
     def setX(self, x: int) -> None:
-        self.x = x
+        self._x = x
 
     def setY(self, y: int) -> None:
-        self.y = y
+        self._y = y
 
     def setFont(self, font: Font) -> None:
-        self.font = font
+        self._font = font
 
     def setBackgroundColor(self, bgColor: Color) -> None:
-        self.bgColor = bgColor
+        self._bgColor = bgColor
 
     def setHoverBackgroundColor(self, bgColor: Color) -> None:
-        self.hoverBgColor = bgColor
+        self._hoverBgColor = bgColor
 
     def setBorder(self, border: bool) -> None:
-        self.border = border
+        self._border = border
 
     def setBorderColor(self, color: Color):
-        self.borderColor = color
+        self._borderColor = color
 
-    def setText(self, text: str) -> None:
-        self.text = text
+    def setId(self, id: str) -> None:
+        self._id = id
 
     def draw(self, screen: Surface):
         raise NotImplementedError("button draw() not implemented!")
@@ -97,7 +98,7 @@ class BaseButton:
 class CircleButton(BaseButton):
     def __init__(
         self,
-        text: str,
+        id: str,
         x: int,
         y: int,
         radius: float,
@@ -105,60 +106,63 @@ class CircleButton(BaseButton):
         border: bool = True,
         borderColor: Color = BLACK
     ) -> None:
-        super().__init__(text, x, y, bgColor, border, borderColor)
-        self.radius: float = radius
+        super().__init__(id, x, y, bgColor, border, borderColor)
+        self._radius: float = radius
 
     def getRadius(self) -> float:
-        return self.radius
+        return self._radius
 
     def setRadius(self, radius: float) -> None:
-        self.radius = radius
+        self._radius = radius
 
     def draw(self, surface: Surface) -> None:
-        draw.circle(surface, self.currBgColor, (self.x, self.y), self.radius, 0)
-        if self.border:
-            draw.circle(surface, self.borderColor, (self.x, self.y), self.radius, 1)
-        if self.text:
-            textImg = self.font.render(self.text, True, BLACK)
-            fontSize = self.font.size(self.text)
-            textX = self.x - int(fontSize[0] / 2)
-            textY = self.y - int(fontSize[1] / 2) + 1
-            surface.blit(textImg, (textX, textY))
+        draw.circle(surface, self._currBgColor, (self._x, self._y), self._radius, 0)
+        if self._border:
+            draw.circle(surface, self._borderColor, (self._x, self._y), self._radius, 1)
+        textImg = self._font.render(self._id, True, BLACK)
+        fontSize = self._font.size(self._id)
+        textX = self._x - int(fontSize[0] / 2)
+        textY = self._y - int(fontSize[1] / 2) + 1
+        surface.blit(textImg, (textX, textY))
 
     def clicked(self, mouseX: int, mouseY: int) -> bool:
-        sqMouseX = (mouseX - self.x) ** 2
-        sqMouseY = (mouseY - self.y) ** 2
-        if math.sqrt(sqMouseX + sqMouseY) < self.radius:
+        sqMouseX = (mouseX - self._x) ** 2
+        sqMouseY = (mouseY - self._y) ** 2
+        if math.sqrt(sqMouseX + sqMouseY) < self._radius:
             return True
         return False
 
     def update(self) -> None:
         (mX, mY) = pygame.mouse.get_pos()
-        sqMouseX = (mX - self.x) ** 2
-        sqMouseY = (mY - self.y) ** 2
-        if math.sqrt(sqMouseX + sqMouseY) < self.radius:
-            self.cursor = pygame.SYSTEM_CURSOR_HAND
-            pygame.mouse.set_cursor(self.cursor)
-            self.currBgColor = self.hoverBgColor
+        sqMouseX = (mX - self._x) ** 2
+        sqMouseY = (mY - self._y) ** 2
+        if math.sqrt(sqMouseX + sqMouseY) < self._radius:
+            self._cursor = pygame.SYSTEM_CURSOR_HAND
+            pygame.mouse.set_cursor(self._cursor)
+            self._currBgColor = self._hoverBgColor
         else:
-            if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
-                self.cursor = pygame.SYSTEM_CURSOR_ARROW
-                pygame.mouse.set_cursor(self.cursor)
-            if self.currBgColor != self.bgColor:
-                self.currBgColor = self.bgColor
+            if self._cursor != pygame.SYSTEM_CURSOR_ARROW:
+                self._cursor = pygame.SYSTEM_CURSOR_ARROW
+                pygame.mouse.set_cursor(self._cursor)
+            if self._currBgColor != self._bgColor:
+                self._currBgColor = self._bgColor
 
 class RectButton(BaseButton):
     def __init__(
         self,
-        text: str,
+        id: str,
         rect:Rect = Rect(0, 0, 0, 0),
         bgColor: Color = GREY,
         border: bool = True,
         borderColor: Color = BLACK,
+        imagePath:str = None
     ) -> None:
-        super().__init__(text, rect.x, rect.y, bgColor, border, borderColor)
+        super().__init__(id, rect.x, rect.y, bgColor, border, borderColor)
         self._rect = rect
-        self.currBgColor = bgColor
+        self._currBgColor = bgColor
+        self._surface = None
+        if imagePath:
+            self._surface = pygame.transform.scale(pygame.image.load(imagePath), (rect.width, rect.height))
 
     def getRect(self) -> Rect:
         return self._rect
@@ -185,28 +189,33 @@ class RectButton(BaseButton):
         self._rect.height = height
 
     def draw(self, surface: Surface) -> None:
-        draw.rect(surface, self.currBgColor, self._rect)
-        textImg = self.font.render(self.text, True, (255, 255, 255))
-        fontSize = self.font.size(self.text)
-        textX = self._rect.x + ((self._rect.width / 2) - (fontSize[0] / 2))
-        textY = self._rect.y + ((self._rect.height / 2) - (fontSize[1] / 2))
-        surface.blit(textImg, (textX, textY))
-        if self.border:
-            drawRectBorder(surface, self._rect, self.borderColor)
+        draw.rect(surface, self._currBgColor, self._rect)
+        if self._surface:
+            surface.blit(self._surface, (self._x, self._y))
+        else:
+            textImg = self._font.render(self._id, True, (255, 255, 255))
+            fontSize = self._font.size(self._id)
+            textX = self._rect.x + ((self._rect.width / 2) - (fontSize[0] / 2))
+            textY = self._rect.y + ((self._rect.height / 2) - (fontSize[1] / 2))
+            surface.blit(textImg, (textX, textY))
+        if self._border:
+            drawRectBorder(surface, self._rect, self._borderColor)
 
-    def clicked(self, mouseX: int, mouseY: int) -> bool:
+    def clicked(self, mouseX:Union[None, int]=None, mouseY:Union[None, int]=None) -> bool:
+        if not mouseX or not mouseY:
+            (mouseX, mouseY) = pygame.mouse.get_pos()
         if self._rect.collidepoint((mouseX, mouseY)):
             return True
         return False
 
     def update(self) -> None:
         if self._rect.collidepoint(pygame.mouse.get_pos()):
-            self.cursor = pygame.SYSTEM_CURSOR_HAND
-            self.currBgColor = self.hoverBgColor
-            pygame.mouse.set_cursor(self.cursor)
+            self._cursor = pygame.SYSTEM_CURSOR_HAND
+            self._currBgColor = self._hoverBgColor
+            pygame.mouse.set_cursor(self._cursor)
         else:
-            if self.cursor != pygame.SYSTEM_CURSOR_ARROW:
-                self.cursor = pygame.SYSTEM_CURSOR_ARROW
-                pygame.mouse.set_cursor(self.cursor)
-            if self.currBgColor != self.bgColor:
-                self.currBgColor = self.bgColor
+            if self._cursor != pygame.SYSTEM_CURSOR_ARROW:
+                self._cursor = pygame.SYSTEM_CURSOR_ARROW
+                pygame.mouse.set_cursor(self._cursor)
+            if self._currBgColor != self._bgColor:
+                self._currBgColor = self._bgColor
