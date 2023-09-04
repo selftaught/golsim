@@ -141,6 +141,8 @@ class Game:
     def eventLoop(self) -> None:
         for event in pygame.event.get():
             buttonCode = event.dict.get("button")
+            inputMode = self._inputModeMngr.mode()
+
             (mX, mY) = pygame.mouse.get_pos()
             cellX = int(mX / self._cellW) + self._cameraX
             cellY = int(mY / self._cellH) + self._cameraY
@@ -157,24 +159,23 @@ class Game:
             elif self._inputModeMngr.eventHandler(event):
                 continue
 
-            if self._inputModeMngr.mode() == InputMode.DRAW:
-                if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
-                    if mY < self._actionBarY:
-                        if self._pattern:
-                            selectedCells = self._pattern.getCells()
-                            for y in range(len(selectedCells)):
-                                for x in range(len(selectedCells[y])):
-                                    selectedCell = selectedCells[y][x]
-                                    nextCellX = cellX + x
-                                    nextCellY = cellY + y
-                                    if nextCellX >= self._cols or nextCellY >= self._rows:
-                                        break
-                                    cell = getCellAtPoint(nextCellX, nextCellY, self._cells, self._rows)
-                                    if selectedCell.getState() == CellState.ALIVE:
-                                        cell.setState(CellState.ALIVE)
-                        else:
-                            cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
-                            cell.setState(CellState.ALIVE)
+            if inputMode == InputMode.DRAW:
+                if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK and mY < self._actionBarY:
+                    if self._pattern:
+                        selectedCells = self._pattern.getCells()
+                        for y in range(len(selectedCells)):
+                            for x in range(len(selectedCells[y])):
+                                selectedCell = selectedCells[y][x]
+                                nextCellX = cellX + x
+                                nextCellY = cellY + y
+                                if nextCellX >= self._cols or nextCellY >= self._rows:
+                                    break
+                                cell = getCellAtPoint(nextCellX, nextCellY, self._cells, self._rows)
+                                if selectedCell.getState() == CellState.ALIVE:
+                                    cell.setState(CellState.ALIVE)
+                    else:
+                        cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
+                        cell.setState(CellState.ALIVE)
                 elif event.type == MOUSEMOTION:
                     if self._mouseButtonHold and mY < self._actionBarY:
                         cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
@@ -217,6 +218,9 @@ class Game:
 
             elif event.type == TEXTINPUT:
                 eventText = event.dict.get('text')
+                if eventText:
+                    eventText = eventText.lower()
+
                 if eventText == 'a':
                     if self._cameraX:
                         self._cameraX -= 1
