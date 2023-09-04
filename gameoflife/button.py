@@ -1,14 +1,17 @@
 import math
 import pygame
 
-from gameoflife.colors import BLACK, GREY
-from gameoflife.helpers import drawRectBorder
-
 from pygame import Surface, draw, Color
+from pygame.event import Event
 from pygame.font import Font
+from pygame.locals import MOUSEBUTTONDOWN
 from pygame.rect import Rect
+from typing import Union, Tuple
 
-from typing import Union
+from gameoflife.colors import BLACK, GREY
+from gameoflife.draw import drawRectBorder
+from gameoflife.mouse import MOUSEBUTTON_LCLICK
+
 
 
 class ButtonID:
@@ -29,6 +32,7 @@ class BaseButton:
         id: str,
         x: int,
         y: int,
+        event: Event,
         bgColor: Color = GREY,
         border: bool = True,
         borderColor: Color = BLACK,
@@ -38,6 +42,7 @@ class BaseButton:
         self._y = y
         self._currBgColor = bgColor
         self._bgColor = bgColor
+        self._event = event
         self._hoverBgColor = bgColor
         self._hoverTextColor = None
         self._border = border
@@ -49,6 +54,9 @@ class BaseButton:
 
     def getBorderColor(self) -> Color:
         return self._borderColor
+
+    def getEvent(self) -> Event:
+        return self._event
 
     def getHoverBackgroundColor(self) -> Color:
         return self._hoverBgColor
@@ -86,11 +94,14 @@ class BaseButton:
     def setId(self, id: str) -> None:
         self._id = id
 
+    def clicked(self, mouseX: int, mouseY: int) -> bool:
+        raise NotImplementedError("button clicked() not implemented!")
+
     def draw(self, screen: Surface):
         raise NotImplementedError("button draw() not implemented!")
 
-    def clicked(self, mouseX: int, mouseY: int) -> bool:
-        raise NotImplementedError("button clicked() not implemented!")
+    def eventHandler(self, event:Event):
+        raise NotImplementedError("button eventHandler() not implemented!")
 
     def update(self) -> None:
         raise NotImplementedError("button update() not implemented!")
@@ -101,12 +112,13 @@ class CircleButton(BaseButton):
         id: str,
         x: int,
         y: int,
+        event: Event,
         radius: float,
         bgColor: Color = GREY,
         border: bool = True,
         borderColor: Color = BLACK
     ) -> None:
-        super().__init__(id, x, y, bgColor, border, borderColor)
+        super().__init__(id, x, y, event, bgColor, border, borderColor)
         self._radius: float = radius
 
     def getRadius(self) -> float:
@@ -114,6 +126,13 @@ class CircleButton(BaseButton):
 
     def setRadius(self, radius: float) -> None:
         self._radius = radius
+
+    def clicked(self, mouseX: int, mouseY: int) -> bool:
+        sqMouseX = (mouseX - self._x) ** 2
+        sqMouseY = (mouseY - self._y) ** 2
+        if math.sqrt(sqMouseX + sqMouseY) < self._radius:
+            return True
+        return False
 
     def draw(self, surface: Surface) -> None:
         draw.circle(surface, self._currBgColor, (self._x, self._y), self._radius, 0)
@@ -125,12 +144,8 @@ class CircleButton(BaseButton):
         textY = self._y - int(fontSize[1] / 2) + 1
         surface.blit(textImg, (textX, textY))
 
-    def clicked(self, mouseX: int, mouseY: int) -> bool:
-        sqMouseX = (mouseX - self._x) ** 2
-        sqMouseY = (mouseY - self._y) ** 2
-        if math.sqrt(sqMouseX + sqMouseY) < self._radius:
-            return True
-        return False
+    def eventHandler(self, event:Event):
+        pass
 
     def update(self) -> None:
         (mX, mY) = pygame.mouse.get_pos()
@@ -151,13 +166,14 @@ class RectButton(BaseButton):
     def __init__(
         self,
         id: str,
+        event:Event,
         rect:Rect = Rect(0, 0, 0, 0),
         bgColor: Color = GREY,
         border: bool = True,
         borderColor: Color = BLACK,
         imagePath:str = None
     ) -> None:
-        super().__init__(id, rect.x, rect.y, bgColor, border, borderColor)
+        super().__init__(id, rect.x, rect.y, event, bgColor, border, borderColor)
         self._rect = rect
         self._currBgColor = bgColor
         self._surface = None
@@ -188,6 +204,13 @@ class RectButton(BaseButton):
     def setH(self, height:int) -> None:
         self._rect.height = height
 
+    def clicked(self, mouseX:Union[None, int]=None, mouseY:Union[None, int]=None) -> bool:
+        if not mouseX or not mouseY:
+            (mouseX, mouseY) = pygame.mouse.get_pos()
+        if self._rect.collidepoint((mouseX, mouseY)):
+            return True
+        return False
+
     def draw(self, surface: Surface) -> None:
         draw.rect(surface, self._currBgColor, self._rect)
         if self._surface:
@@ -201,12 +224,12 @@ class RectButton(BaseButton):
         if self._border:
             drawRectBorder(surface, self._rect, self._borderColor)
 
-    def clicked(self, mouseX:Union[None, int]=None, mouseY:Union[None, int]=None) -> bool:
-        if not mouseX or not mouseY:
-            (mouseX, mouseY) = pygame.mouse.get_pos()
-        if self._rect.collidepoint((mouseX, mouseY)):
-            return True
-        return False
+    def eventHandler(self, event:Event):
+        buttonCode = event.dict.get("button")
+        if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
+            if self.clicked():
+                print(f'posting event: {self._event}')
+                pygame.event.post(self._event)
 
     def update(self) -> None:
         if self._rect.collidepoint(pygame.mouse.get_pos()):
@@ -219,3 +242,35 @@ class RectButton(BaseButton):
                 pygame.mouse.set_cursor(self._cursor)
             if self._currBgColor != self._bgColor:
                 self._currBgColor = self._bgColor
+
+
+class ToggleRectButton(RectButton):
+    def __init__(
+        self,
+        id: str,
+        onDisable:Tuple[str, Event],
+        onEnable:Tuple[str, Event],
+        rect:Rect = Rect(0, 0, 0, 0),
+        bgColor: Color = GREY,
+        border: bool = True,
+        borderColor: Color = BLACK,
+    ) -> None:
+        super().__init__(id, None, rect, bgColor, border, borderColor)
+        self._rect = rect
+        self._currBgColor = bgColor
+        self._surface = None
+        self._onDisable = onDisable
+        self._onEnable = onEnable
+        self._enabled = False
+
+    def eventHandler(self, event:Event):
+        buttonCode = event.dict.get("button")
+        if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
+            if self.clicked():
+                self._enabled = not self._enabled
+                if self._enabled:
+                    pygame.event.post(self._onEnable[1])
+                    self._id = self._onEnable[0]
+                else:
+                    pygame.event.post(self._onDisable[1])
+                    self._id = self._onDisable[0]

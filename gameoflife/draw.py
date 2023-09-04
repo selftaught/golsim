@@ -1,10 +1,7 @@
-import pygame
-
-from gameoflife.colors import BLACK
 from pygame import draw, Rect
 from pygame.surface import Surface
-from typing import Tuple, List
 
+from gameoflife.colors import BLACK
 
 def drawRectBorder(
     screen: Surface, r:Rect, color=BLACK

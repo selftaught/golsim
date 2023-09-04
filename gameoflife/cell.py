@@ -85,7 +85,7 @@ def getCellStateAtPoint(x, y, cells, dimension) -> int:
         pass
     return 0
 
-def getAliveNeighbors(x:int, y:int, dimension:int, cells:list) -> int:
+def getAliveNeighbors(x:int, y:int, dimension:int, cells:List) -> int:
     alive = 0
     alive += getCellStateAtPoint(x-1, y-1, cells, dimension)
     alive += getCellStateAtPoint(x, y-1, cells, dimension)

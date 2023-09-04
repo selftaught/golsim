@@ -1,24 +1,17 @@
 import json
 import pygame
 
-from gameoflife.button import RectButton
-from gameoflife.cell import Cell, CellState
-from gameoflife.colors import (
-    BLACK,
-    GREY,
-    GREY_DARK1,
-    GREY_LIGHT1,
-    GREY_LIGHT2,
-    RED,
-    RED_LIGHT1,
-    WHITE,
-)
-from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
-from gameoflife.helpers import drawRectBorder
 from pygame import Surface, draw, Rect, Color
 from pygame.font import Font
 from pygame.locals import MOUSEBUTTONUP
 from typing import Union, List
+
+from gameoflife.button import RectButton
+from gameoflife.cell import Cell, CellState
+from gameoflife.colors import BLACK, GREY, GREY_DARK1, GREY_LIGHT1, GREY_LIGHT2, RED, RED_LIGHT1, WHITE
+from gameoflife.draw import drawRectBorder
+from gameoflife.event import EVENT_PATTERNS
+from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
 
 
 class PatternType:
@@ -28,13 +21,11 @@ class PatternType:
     FlipFlop: int = 4
     Methuselah: int = 5
 
-
 class Pattern:
     def __init__(self, name: str, path: str, type: PatternType) -> None:
         self._rows: int = 0
         self._cols: int = 0
         self._name: str = name
-        self._desc: str = ""  # TODO
         self._path: str = path
         self._type: PatternType = type
         self._cells: List[List] = []
@@ -201,7 +192,7 @@ class PatternMenu:
         self._maxHeight: Union[int, None] = maxHeight
         self._font = font
         self._bgColor = GREY_LIGHT1
-        self._closeBtn = RectButton("X", Rect(x, y - 20, 20, 20), RED_LIGHT1)
+        self._closeBtn = RectButton("X", EVENT_PATTERNS, Rect(x, y - 20, 20, 20), RED_LIGHT1)
         self._closeBtn.setFont(font)
         self._closeBtn.setHoverBackgroundColor(RED)
         self._enabled = False

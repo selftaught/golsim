@@ -11,12 +11,13 @@ from pygame.surface import Surface
 from typing import List
 
 from gameoflife.bresenham import bresenham
-from gameoflife.button import BaseButton, ButtonID, RectButton
+from gameoflife.button import BaseButton, ButtonID, RectButton, ToggleRectButton
 from gameoflife.cell import Cell, CellState, getAliveNeighbors, getCellAtPoint
 from gameoflife.colors import BLACK, BLUE, GREEN, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
 from gameoflife.config import Config
+from gameoflife.draw import drawRectBorder
+from gameoflife.event import *
 from gameoflife.grid import Grid
-from gameoflife.helpers import drawRectBorder
 from gameoflife.input import InputMode, InputModeManager
 from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP, MouseMode
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
@@ -85,11 +86,11 @@ class Game:
         btnWidth = 100
 
         self._buttons = [
-            RectButton(ButtonID.CLEAR),
-            RectButton(ButtonID.START),
-            RectButton(ButtonID.NEXT),
-            RectButton(ButtonID.PATTERNS),
-            RectButton(ButtonID.EXIT),
+            RectButton(ButtonID.CLEAR, EVENT_CLEAR),
+            ToggleRectButton(ButtonID.START, onDisable=[ButtonID.START, EVENT_STOP], onEnable=[ButtonID.STOP, EVENT_START]),
+            RectButton(ButtonID.NEXT, EVENT_NEXT),
+            RectButton(ButtonID.PATTERNS, EVENT_PATTERNS),
+            RectButton(ButtonID.EXIT, EVENT_EXIT),
         ]
 
         widthRem = self._width - ((len(self._buttons) * (btnWidth + btnMargin)) - btnMargin)
@@ -104,8 +105,8 @@ class Game:
             buttonX += btnWidth + btnMargin
 
         self._inputModeMngr.setBtnStartCoords((buttonX, buttonY))
-        self._inputModeMngr.addMode(ButtonID.DRAW, imagePath="images/draw.png", active=True)
-        self._inputModeMngr.addMode(ButtonID.PAN, imagePath="images/pan.png")
+        self._inputModeMngr.addMode(ButtonID.DRAW, EVENT_INPUT_MODE_DRAW, imagePath="images/draw.png", active=True)
+        self._inputModeMngr.addMode(ButtonID.PAN, EVENT_INPUT_MODE_PAN, imagePath="images/pan.png")
 
     def initCells(self) -> None:
         self._cells = []
@@ -195,6 +196,7 @@ class Game:
 
             if event.type == pygame.QUIT:
                 self.quit()
+
             elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     self._pattern = None
@@ -233,29 +235,6 @@ class Game:
                     self._mouseButtonHold = True
                     self.stop()
 
-                for button in self._buttons:
-                    if button.clicked():
-                        btnId = button.getId()
-                        if btnId == ButtonID.CLEAR:
-                            self.clear()
-                            for b in self._buttons:
-                                if b.getId() == ButtonID.STOP:
-                                    b.setId(ButtonID.START)
-                                    self.stop()
-                                    break
-                        elif btnId == ButtonID.NEXT:
-                            self._next = True
-                        elif btnId == ButtonID.START:
-                            self.start()
-                            button.setId(ButtonID.STOP)
-                        elif btnId == ButtonID.STOP:
-                            self.stop()
-                            button.setId(ButtonID.START)
-                        elif btnId == ButtonID.PATTERNS:
-                            self._patternsMenu.toggle()
-                        elif btnId == ButtonID.EXIT:
-                            self.quit()
-
             elif event.type == MOUSEBUTTONUP:
                 if (
                     buttonCode == MOUSEBUTTON_SCROLL_DOWN
@@ -270,6 +249,22 @@ class Game:
                 elif buttonCode == MOUSEBUTTON_LCLICK:
                     self._mouseButtonHold = False
                     self._lastMarkedCell = None
+
+            elif event == EVENT_START:
+                self.start()
+            elif event == EVENT_STOP:
+                self.stop()
+            elif event == EVENT_CLEAR:
+                self.clear()
+            elif event == EVENT_NEXT:
+                self._next = True
+            elif event == EVENT_PATTERNS:
+                self._patternsMenu.toggle()
+            elif event == EVENT_EXIT:
+                self.quit()
+
+            for button in self._buttons:
+                button.eventHandler(event)
 
     async def loop(self) -> None:
         while self.running():

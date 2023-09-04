@@ -6,7 +6,7 @@ from typing import List, Tuple, Union
 
 from gameoflife.button import BaseButton, ButtonID, RectButton
 from gameoflife.colors import GREEN
-from gameoflife.helpers import drawRectBorder
+from gameoflife.draw import drawRectBorder
 from gameoflife.mouse import MOUSEBUTTON_LCLICK
 
 
@@ -24,16 +24,17 @@ class InputModeManager:
         self._buttons:List[BaseButton] = []
         self._mode:Union[str, None] = None
 
-    def addMode(self, mode:str, imagePath:str=None, active:bool=False) -> None:
+    def addMode(self, mode:str, event:Event, imagePath:str=None, active:bool=False) -> None:
         btnX = (len(self._buttons) * self._btnWidth + self._btnMargin) + self._btnStartX
         rect = Rect(btnX, self._btnStartY, self._btnWidth, self._btnHeight)
-        button = RectButton(mode, rect, imagePath=imagePath, border=False)
+        button = RectButton(mode, event, rect, imagePath=imagePath, border=False)
         self._buttons.append(button)
         if active:
             self._mode = mode
 
     def eventHandler(self, event:Event) -> bool:
-        if (event.type == MOUSEBUTTONDOWN and event.dict.get("button") == MOUSEBUTTON_LCLICK):
+        eventButton = event.dict.get("button")
+        if event.type == MOUSEBUTTONDOWN and eventButton == MOUSEBUTTON_LCLICK:
             for btn in self._buttons:
                 if btn.clicked():
                     self._mode = btn.getId()
