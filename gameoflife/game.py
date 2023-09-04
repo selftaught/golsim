@@ -128,7 +128,7 @@ class Game:
         self._cellsDied = 0
         self._mouseButtonHold = False
         self._inputModeMngr = InputModeManager()
-        self._prevCellMarkedAlive = None
+        self._lastMarkedCell = None
 
         self.zoom = 1
         self.zoomMax = 10
@@ -221,24 +221,20 @@ class Game:
                     if mY < self._actionBarY:
                         cellX = int(mX / self._cellW) + self._cameraX
                         cellY = int(mY / self._cellH) + self._cameraY
-                        try:
-                            if self._pattern:
-                                selectedCells = self._pattern.getCells()
-                                for y in range(len(selectedCells)):
-                                    for x in range(len(selectedCells[y])):
-                                        selectedCell = selectedCells[y][x]
-                                        nextCellX = cellX + x
-                                        nextCellY = cellY + y
-                                        if nextCellX < self._cols and nextCellY < self._rows:
-                                            cell = getCellAtPoint(nextCellX, nextCellY, self._cells, self._rows)
-                                            if selectedCell.getState() == CellState.ALIVE:
-                                                cell.setState(CellState.ALIVE)
-                            else:
-                                cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
-                                cell.setState(CellState.ALIVE)
-                                self._prevCellMarkedAlive = None
-                        except Exception as e:
-                            print(e)
+                        if self._pattern:
+                            selectedCells = self._pattern.getCells()
+                            for y in range(len(selectedCells)):
+                                for x in range(len(selectedCells[y])):
+                                    selectedCell = selectedCells[y][x]
+                                    nextCellX = cellX + x
+                                    nextCellY = cellY + y
+                                    if nextCellX < self._cols and nextCellY < self._rows:
+                                        cell = getCellAtPoint(nextCellX, nextCellY, self._cells, self._rows)
+                                        if selectedCell.getState() == CellState.ALIVE:
+                                            cell.setState(CellState.ALIVE)
+                        else:
+                            cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
+                            cell.setState(CellState.ALIVE)
                 elif event.type == MOUSEMOTION:
                     if self._mouseButtonHold:
                         if mY < self._actionBarY:
@@ -246,14 +242,14 @@ class Game:
                             cellY = int(mY / self._cellH) + self._cameraY
                             cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                             cell.setState(CellState.ALIVE)
-                            if self._prevCellMarkedAlive:
-                                (prevX, prevY) = self._prevCellMarkedAlive
+                            if self._lastMarkedCell:
+                                (prevX, prevY) = self._lastMarkedCell
                                 if cellX - prevX != 0 or cellY - prevY != 0:
                                     for point in list(bresenham(prevX, prevY, cellX, cellY)):
                                         (x, y) = point
                                         c = getCellAtPoint(x, y, self._cells, self._rows)
                                         c.setState(CellState.ALIVE)
-                            self._prevCellMarkedAlive = (cellX, cellY)
+                            self._lastMarkedCell = (cellX, cellY)
                 elif event.type == MOUSEBUTTONUP:
                     if buttonCode == MOUSEBUTTON_RCLICK:
                         cellX = int(mX / self._cellW) + self._cameraX
@@ -338,7 +334,7 @@ class Game:
                     self.zoom += self.zoomStep
                 elif buttonCode == MOUSEBUTTON_LCLICK:
                     self._mouseButtonHold = False
-                    self._prevCellMarkedAlive = None
+                    self._lastMarkedCell = None
 
     async def loop(self) -> None:
         while self.running():
