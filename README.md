@@ -25,8 +25,7 @@ Yet another Game of Life simulator, developed using the python [pygame library](
 ## TODO
 
 - [ ] Cell selection & controls (copy, cut, save)
-- [ ] Increase cell array size to something like 5000x5000
-- [ ] Start with a zoomed in view at the center of the cell array
+- [x] Start with a zoomed in view at the center of the cell array
 - [ ] Zooming in/out on cell array (increase/decrease number of visible cells)
 - [ ] Panning to view other parts of the cell array when zoomed
 - [ ] Autosave game cell array seed to a file for replay
