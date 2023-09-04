@@ -7,81 +7,20 @@ import time
 from pygame.event import Event
 from pygame.font import Font
 from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE, TEXTINPUT, MOUSEMOTION
+from pygame.surface import Surface
+from typing import List
+
 from gameoflife.bresenham import bresenham
-from gameoflife.button import BaseButton
-from gameoflife.colors import BLUE, BLACK, GREEN, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
-from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP, MouseMode
+from gameoflife.button import BaseButton, ButtonID, RectButton
+from gameoflife.cell import Cell, CellState, getAliveNeighbors, getCellAtPoint
+from gameoflife.colors import BLACK, BLUE, GREEN, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
 from gameoflife.config import Config
 from gameoflife.grid import Grid
-from gameoflife.button import RectButton, ButtonID
-from gameoflife.cell import *
-from gameoflife.pattern import Pattern, PatternMenu, PatternType
-from gameoflife.cell import getCellAtPoint
 from gameoflife.helpers import drawRectBorder
+from gameoflife.input import InputMode, InputModeManager
+from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP, MouseMode
+from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
-
-class InputMode:
-    DRAW = ButtonID.DRAW
-    PAN = ButtonID.PAN
-
-class InputModeManager:
-    def __init__(self, btnWidth:int=30, btnHeight:int=30, btnMargin:int=10, btnStartX:int=0, btnStartY:int=0) -> None:
-        self._btnMargin = btnMargin
-        self._btnHeight = btnHeight
-        self._btnWidth = btnWidth
-        self._btnStartX = btnStartX
-        self._btnStartY = btnStartY
-        self._buttons:List[BaseButton] = []
-        self._mode:Union[str, None] = None
-
-    def addMode(self, mode:str, imagePath:str=None, active:bool=False) -> None:
-        btnX = (len(self._buttons) * self._btnWidth + self._btnMargin) + self._btnStartX
-        rect = Rect(btnX, self._btnStartY, self._btnWidth, self._btnHeight)
-        button = RectButton(mode, rect, imagePath=imagePath, border=False)
-        self._buttons.append(button)
-        if active:
-            self._mode = mode
-
-    def eventHandler(self, event:Event) -> bool:
-        if (event.type == MOUSEBUTTONDOWN and event.dict.get("button") == MOUSEBUTTON_LCLICK):
-            for btn in self._buttons:
-                if btn.clicked():
-                    self._mode = btn.getId()
-                    return True
-        return False
-
-    def draw(self, surface:Surface) -> None:
-        modeRect = None
-        for btn in self._buttons:
-            btnId = btn.getId()
-            btn.draw(surface)
-            if btnId == self._mode:
-                modeRect = btn.getRect()
-        if modeRect:
-            drawRectBorder(surface, modeRect, GREEN)
-
-    def mode(self) -> str:
-        return self._mode
-
-    def update(self) -> None:
-        for btn in self._buttons:
-            btn.update()
-
-    def setBtnWidth(self, width:int):
-        self._btnWidth = width
-
-    def setBtnHeight(self, height:int):
-        self._btnHeight = height
-
-    def setBtnStartX(self, x:int) -> None:
-        self._btnStartX = x
-
-    def setBtnStartY(self, y:int) -> None:
-        self._btnStartY = y
-
-    def setBtnStartCoords(self, coords:Tuple[int, int]) -> None:
-        self._btnStartX = coords[0]
-        self._btnStartY = coords[1]
 
 class Game:
     def __init__(self) -> None:
@@ -112,7 +51,7 @@ class Game:
         self._rows = 200
         self._rowsVisible = int(self._height / self._cellH)
         self._grid = Grid(self._colsVisible, self._rowsVisible, self._cellW, self._cellH)
-        self._cellsurf = pygame.Surface((self._cols * self._cellW, self._rows * self._cellH))
+        self._cellsurf = Surface((self._cols * self._cellW, self._rows * self._cellH))
         self._cameraX = int((self._cols / 2) - (self._colsVisible / 2))
         self._cameraY = int((self._rows / 2) - (self._rowsVisible / 2))
         self._clear = False
@@ -275,22 +214,24 @@ class Game:
                         self._cameraY -= 1
 
             elif event.type == TEXTINPUT:
-                if event.dict.get('text') == 'a':
+                eventText = event.dict.get('text')
+                if eventText == 'a':
                     if self._cameraX:
                         self._cameraX -= 1
-                elif event.dict.get('text') == 'd':
+                elif eventText == 'd':
                     if self._cameraX < self._cols - self._colsVisible:
                         self._cameraX += 1
-                elif event.dict.get('text') == 's':
+                elif eventText == 's':
                     if self._cameraY < self._rows - self._rowsVisible:
                         self._cameraY += 1
-                elif event.dict.get('text') == 'w':
+                elif eventText == 'w':
                     if self._cameraY:
                         self._cameraY -= 1
 
             elif event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
                 if mY < self._actionBarY:
                     self._mouseButtonHold = True
+                    self.stop()
 
                 for button in self._buttons:
                     if button.clicked():
