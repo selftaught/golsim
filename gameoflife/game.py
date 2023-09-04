@@ -7,6 +7,7 @@ import time
 from pygame.event import Event
 from pygame.font import Font
 from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE, TEXTINPUT, MOUSEMOTION
+from gameoflife.bresenham import bresenham
 from gameoflife.button import BaseButton
 from gameoflife.colors import BLUE, BLACK, GREEN, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
 from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP, MouseMode
@@ -127,6 +128,7 @@ class Game:
         self._cellsDied = 0
         self._mouseButtonHold = False
         self._inputModeMngr = InputModeManager()
+        self._prevCellMarkedAlive = None
 
         self.zoom = 1
         self.zoomMax = 10
@@ -212,7 +214,7 @@ class Game:
                         self._pattern.setCellWidth(self._cellW)
                     continue
             elif self._inputModeMngr.eventHandler(event):
-                pass
+                continue
 
             if self._inputModeMngr.mode() == InputMode.DRAW:
                 if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
@@ -229,10 +231,12 @@ class Game:
                                         nextCellY = cellY + y
                                         if nextCellX < self._cols and nextCellY < self._rows:
                                             cell = getCellAtPoint(nextCellX, nextCellY, self._cells, self._rows)
-                                            cell.setState(selectedCell.getState())
+                                            if selectedCell.getState() == CellState.ALIVE:
+                                                cell.setState(CellState.ALIVE)
                             else:
                                 cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                                 cell.setState(CellState.ALIVE)
+                                self._prevCellMarkedAlive = None
                         except Exception as e:
                             print(e)
                 elif event.type == MOUSEMOTION:
@@ -242,6 +246,14 @@ class Game:
                             cellY = int(mY / self._cellH) + self._cameraY
                             cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                             cell.setState(CellState.ALIVE)
+                            if self._prevCellMarkedAlive:
+                                (prevX, prevY) = self._prevCellMarkedAlive
+                                if cellX - prevX != 0 or cellY - prevY != 0:
+                                    for point in list(bresenham(prevX, prevY, cellX, cellY)):
+                                        (x, y) = point
+                                        c = getCellAtPoint(x, y, self._cells, self._rows)
+                                        c.setState(CellState.ALIVE)
+                            self._prevCellMarkedAlive = (cellX, cellY)
                 elif event.type == MOUSEBUTTONUP:
                     if buttonCode == MOUSEBUTTON_RCLICK:
                         cellX = int(mX / self._cellW) + self._cameraX
@@ -326,6 +338,7 @@ class Game:
                     self.zoom += self.zoomStep
                 elif buttonCode == MOUSEBUTTON_LCLICK:
                     self._mouseButtonHold = False
+                    self._prevCellMarkedAlive = None
 
     async def loop(self) -> None:
         while self.running():
