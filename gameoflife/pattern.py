@@ -376,6 +376,6 @@ class PatternMenu:
 
     def hovered(self) -> bool:
         (mX, mY) = pygame.mouse.get_pos()
-        if self._rect.collidepoint(mX, mY):
+        if self._rect.collidepoint(mX, mY) or self._closeBtn.hovered():
             return True
         return False

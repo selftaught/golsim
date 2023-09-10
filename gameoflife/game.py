@@ -308,6 +308,7 @@ class Game:
     def update(self) -> None:
         if self.cleared():
             self.initCells()
+            return
 
         for button in self._buttons:
             button.update()
@@ -411,7 +412,7 @@ class Game:
                 pygame.mouse.set_visible(True)
             else:
                 cursorSurface = self._inputModeMngr.cursorSurface()
-                if cursorSurface:
+                if cursorSurface and not self._pattern:
                     pygame.mouse.set_visible(False)
                     screen.blit(cursorSurface, (mX, mY))
         else:

@@ -25,8 +25,8 @@ class ButtonID:
     DRAW = "Draw"
     PAN = "Pan"
     SELECT = "Select"
-    ZOOM_IN = "ZoomIn"
-    ZOOM_OUT = "ZoomOut"
+    ZOOM_IN = "Zoom In"
+    ZOOM_OUT = "Zoom Out"
 
 
 class BaseButton:
@@ -100,10 +100,13 @@ class BaseButton:
     def clicked(self, mouseX: int, mouseY: int) -> bool:
         raise NotImplementedError("button clicked() not implemented!")
 
-    def draw(self, screen: Surface):
+    def draw(self, screen: Surface) -> None:
         raise NotImplementedError("button draw() not implemented!")
 
     def eventHandler(self, event:Event):
+        raise NotImplementedError("button eventHandler() not implemented!")
+
+    def hovered(self) -> None:
         raise NotImplementedError("button eventHandler() not implemented!")
 
     def update(self) -> None:
@@ -237,6 +240,11 @@ class RectButton(BaseButton):
         if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
             if self.clicked():
                 pygame.event.post(self._event)
+
+    def hovered(self) -> bool:
+        (mX, mY) = pygame.mouse.get_pos()
+        if self._rect.collidepoint(mX, mY):
+            return True
 
     def update(self) -> None:
         if self._rect.collidepoint(pygame.mouse.get_pos()):
