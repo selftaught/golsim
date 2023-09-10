@@ -234,7 +234,6 @@ class RectButton(BaseButton):
         buttonCode = event.dict.get("button")
         if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
             if self.clicked():
-                print(f'posting event: {self._event}')
                 pygame.event.post(self._event)
 
     def update(self) -> None:
