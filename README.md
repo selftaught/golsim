@@ -4,7 +4,7 @@ Yet another Game of Life simulator, developed using the python [pygame library](
 
 [![Build Status](https://app.travis-ci.com/selftaught/GameOfLife.svg?token=Tx7EAKup6EXJbMTwywxS&branch=main)](https://app.travis-ci.com/selftaught/GameOfLife)
 
-![Game of Life](https://i.imgur.com/HfXrR09.png)
+![Game of Life](images/gameoflife.png)
 
 ## Install Dependencies
 
