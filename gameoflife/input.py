@@ -13,6 +13,9 @@ from gameoflife.mouse import MOUSEBUTTON_LCLICK
 class InputMode:
     DRAW = ButtonID.DRAW
     PAN = ButtonID.PAN
+    SELECT = ButtonID.SELECT
+    ZOOM_IN = ButtonID.ZOOM_IN
+    ZOOM_OUT = ButtonID.ZOOM_OUT
 
 class InputModeManager:
     def __init__(self, btnWidth:int=30, btnHeight:int=30, btnMargin:int=10, btnStartX:int=0, btnStartY:int=0) -> None:
@@ -27,7 +30,7 @@ class InputModeManager:
     def addMode(self, mode:str, event:Event, imagePath:str=None, active:bool=False) -> None:
         btnX = (len(self._buttons) * self._btnWidth + self._btnMargin) + self._btnStartX
         rect = Rect(btnX, self._btnStartY, self._btnWidth, self._btnHeight)
-        button = RectButton(mode, event, rect, imagePath=imagePath, border=False)
+        button = RectButton(mode, event, rect, imagePath=imagePath, border=False, bgColor=None)
         self._buttons.append(button)
         if active:
             self._mode = mode

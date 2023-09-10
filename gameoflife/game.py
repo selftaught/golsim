@@ -1,4 +1,3 @@
-import asyncio
 import concurrent.futures
 import glob
 import pygame
@@ -55,6 +54,7 @@ class Game:
         self._cellsurf = Surface((self._cols * self._cellW, self._rows * self._cellH))
         self._cameraX = int((self._cols / 2) - (self._colsVisible / 2))
         self._cameraY = int((self._rows / 2) - (self._rowsVisible / 2))
+        self._cameraMoveDist = 5
         self._clear = False
         self._next = False
         self._running = True
@@ -67,24 +67,26 @@ class Game:
         self._cellsBirthed = 0
         self._cellsDied = 0
         self._mouseButtonHold = False
+        self._mouseClickPos = None
+        self._mouseClickPos2 = None
         self._inputModeMngr = InputModeManager()
         self._lastMarkedCell = None
 
         self.zoom = 1
         self.zoomMax = 10
         self.zoomMin = 1
-        self.zoomStep = 0.10
+        self.zoomStep = 1
 
         self.initPatterns()
         self.initButtons()
         self.initCells()
-
 
     def initButtons(self) -> None:
         btnHeight = 30
         btnMargin = 15
         btnWidth = 100
 
+        self._startStopBtnIdx = 1
         self._buttons = [
             RectButton(ButtonID.CLEAR, EVENT_CLEAR),
             ToggleRectButton(ButtonID.START, onDisable=[ButtonID.START, EVENT_STOP], onEnable=[ButtonID.STOP, EVENT_START]),
@@ -107,6 +109,9 @@ class Game:
         self._inputModeMngr.setBtnStartCoords((buttonX, buttonY))
         self._inputModeMngr.addMode(ButtonID.DRAW, EVENT_INPUT_MODE_DRAW, imagePath="images/draw.png", active=True)
         self._inputModeMngr.addMode(ButtonID.PAN, EVENT_INPUT_MODE_PAN, imagePath="images/pan.png")
+        self._inputModeMngr.addMode(ButtonID.SELECT, EVENT_INPUT_MODE_PAN, imagePath="images/select.png")
+        self._inputModeMngr.addMode(ButtonID.ZOOM_IN, EVENT_INPUT_MODE_PAN, imagePath="images/zoomin.png")
+        self._inputModeMngr.addMode(ButtonID.ZOOM_OUT, EVENT_INPUT_MODE_PAN, imagePath="images/zoomout.png")
 
     def initCells(self) -> None:
         self._cells = []
@@ -158,7 +163,7 @@ class Game:
                     continue
             elif self._inputModeMngr.eventHandler(event):
                 continue
-
+            # -----------------------------------------------------
             if inputMode == InputMode.DRAW:
                 if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK and mY < self._actionBarY:
                     if self._pattern:
@@ -192,29 +197,40 @@ class Game:
                     if buttonCode == MOUSEBUTTON_RCLICK:
                         cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                         cell.setState(CellState.DEAD)
-            elif self._inputModeMngr.mode() == InputMode.PAN:
+            elif inputMode == InputMode.PAN:
                 pass
 
+            elif inputMode == InputMode.SELECT:
+                pass
+
+            elif inputMode == InputMode.ZOOM_IN:
+                pass
+
+            elif inputMode == InputMode.ZOOM_OUT:
+                pass
+            # -----------------------------------------------------
             if event.type == pygame.QUIT:
                 self.quit()
 
             elif event.type == KEYDOWN:
                 if event.key == K_ESCAPE:
                     self._pattern = None
+                    self._mouseClickPos = None
+                    self._mouseClickPos2 = None
                 elif event.key == K_g:
                     self._grid.toggle()
                 elif event.key == K_a: # left
                     if self._cameraX:
-                        self._cameraX -= 1
+                        self._cameraX -= self._cameraMoveDist
                 elif event.key == K_d: # right
                     if self._cameraX < self._cols - self._colsVisible:
-                        self._cameraX += 1
+                        self._cameraX += self._cameraMoveDist
                 elif event.key == K_s: # down
                     if self._cameraY < self._rows - self._rowsVisible:
-                        self._cameraY += 1
+                        self._cameraY += self._cameraMoveDist
                 elif event.key == K_w: # up
                     if self._cameraY:
-                        self._cameraY -= 1
+                        self._cameraY -= self._cameraMoveDist
 
             elif event.type == TEXTINPUT:
                 eventText = event.dict.get('text')
@@ -223,21 +239,32 @@ class Game:
 
                 if eventText == 'a':
                     if self._cameraX:
-                        self._cameraX -= 1
+                        self._cameraX -= self._cameraMoveDist
                 elif eventText == 'd':
                     if self._cameraX < self._cols - self._colsVisible:
-                        self._cameraX += 1
+                        self._cameraX += self._cameraMoveDist
                 elif eventText == 's':
                     if self._cameraY < self._rows - self._rowsVisible:
-                        self._cameraY += 1
+                        self._cameraY += self._cameraMoveDist
                 elif eventText == 'w':
                     if self._cameraY:
-                        self._cameraY -= 1
+                        self._cameraY -= self._cameraMoveDist
 
             elif event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
                 if mY < self._actionBarY:
                     self._mouseButtonHold = True
-                    self.stop()
+                    if inputMode == InputMode.SELECT:
+                        if not self._mouseClickPos:
+                            self._mouseClickPos = (mX, mY)
+                        elif not self._mouseClickPos2:
+                            self._mouseClickPos2 = (mX, mY)
+                        else:
+                            self._mouseClickPos = (mX, mY)
+                            self._mouseClickPos2 = None
+
+                    if self._inputModeMngr.mode() == InputMode.DRAW and not self.stopped():
+                        self.stop()
+                        self._buttons[self._startStopBtnIdx].toggle()
 
             elif event.type == MOUSEBUTTONUP:
                 if (
@@ -270,7 +297,7 @@ class Game:
             for button in self._buttons:
                 button.eventHandler(event)
 
-    async def loop(self) -> None:
+    def loop(self) -> None:
         while self.running():
             self.eventLoop()
             self.update()
@@ -339,31 +366,43 @@ class Game:
                 self.stop()
 
     def draw(self) -> None:
-        self._screen.fill(WHITE)
+        screen = self._screen
+        cameraX, cameraY = self._cameraX, self._cameraY
+        cellH, cellW = self._cellH, self._cellW
+        colsVis, rowsVis = self._colsVisible, self._rowsVisible
 
-        for y in range(self._rowsVisible):
-            for x in range(self._colsVisible):
-                cellX = self._cameraX + x
-                cellY = self._cameraY + y
+        screen.fill(WHITE)
+
+        for y in range(rowsVis):
+            for x in range(colsVis):
+                cellX = cameraX + x
+                cellY = cameraY + y
                 cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                 cell.draw(self._cellsurf)
 
-        cellSurfRect = pygame.Rect(
-            self._cameraX * self._cellW,
-            self._cameraY * self._cellH,
-            self._colsVisible * self._cellW,
-            self._rowsVisible * self._cellH
-        )
+        cellSurfRect = pygame.Rect(cameraX * cellW, cameraY * cellH, colsVis * cellW, rowsVis * cellH)
+        inputMode = self._inputModeMngr.mode()
+        (mX, mY) = pygame.mouse.get_pos()
 
-        self._screen.blit(self._cellsurf, (0, 0), cellSurfRect)
-        self._grid.draw(self._screen)
+        screen.blit(self._cellsurf, (0, 0), cellSurfRect)
+        self._grid.draw(screen)
 
         if self._patternsMenu.enabled():
-            self._patternsMenu.draw(self._screen)
+            self._patternsMenu.draw(screen)
 
-        if self._pattern and pygame.mouse.get_pos()[1] < self._actionBarY:
-            patternSurf = self._pattern.getSurface()
-            self._screen.blit(patternSurf, pygame.mouse.get_pos())
+        if mY < self._actionBarY:
+            if self._pattern:
+                patternSurf = self._pattern.getSurface()
+                screen.blit(patternSurf, pygame.mouse.get_pos())
+
+        if inputMode == InputMode.SELECT:
+            mcPos, mcPos2 = self._mouseClickPos, self._mouseClickPos2
+            if mcPos:
+                if not mcPos2:
+                    selectRect = pygame.Rect(mX, mY, self.mcPos[0] - mX, self.mcPos[1] - mY)
+                else:
+                    selectRect = pygame.Rect(mcPos[0], mcPos[1], mcPos2[0] - mcPos[0], mcPos2[1] - mcPos[1])
+                drawRectBorder(screen, selectRect)
 
         self.drawActionBar()
 
@@ -415,6 +454,9 @@ class Game:
         # self._screen.blit(vrText, (self._width - 130, self._actionBarY + 45))
 
     def clear(self) -> None:
+        startStopBtn = self._buttons[self._startStopBtnIdx]
+        if startStopBtn.getId() == ButtonID.STOP:
+            startStopBtn.toggle()
         self._clear = True
         self._cellsAlive = 0
         self._cellsBirthed = 0

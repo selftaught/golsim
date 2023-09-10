@@ -24,6 +24,9 @@ class ButtonID:
     PATTERNS = "Patterns"
     DRAW = "Draw"
     PAN = "Pan"
+    SELECT = "Select"
+    ZOOM_IN = "ZoomIn"
+    ZOOM_OUT = "ZoomOut"
 
 
 class BaseButton:
@@ -212,7 +215,9 @@ class RectButton(BaseButton):
         return False
 
     def draw(self, surface: Surface) -> None:
-        draw.rect(surface, self._currBgColor, self._rect)
+        if self._currBgColor:
+            draw.rect(surface, self._currBgColor, self._rect)
+
         if self._surface:
             surface.blit(self._surface, (self._x, self._y))
         else:
@@ -267,10 +272,13 @@ class ToggleRectButton(RectButton):
         buttonCode = event.dict.get("button")
         if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
             if self.clicked():
-                self._enabled = not self._enabled
-                if self._enabled:
-                    pygame.event.post(self._onEnable[1])
-                    self._id = self._onEnable[0]
-                else:
-                    pygame.event.post(self._onDisable[1])
-                    self._id = self._onDisable[0]
+                self.toggle()
+
+    def toggle(self):
+        self._enabled = not self._enabled
+        if self._enabled:
+            pygame.event.post(self._onEnable[1])
+            self._id = self._onEnable[0]
+        else:
+            pygame.event.post(self._onDisable[1])
+            self._id = self._onDisable[0]

@@ -88,6 +88,9 @@ class Pattern:
     def getWidth(self) -> int:
         return self._cellW * self._cols
 
+    def rotate(self, degrees:int):
+        pass
+
     def setBgColor(self, color) -> None:
         self._bgColor = color
         for y in range(len(self._cells)):
