@@ -8,7 +8,7 @@ from pygame.locals import MOUSEBUTTONDOWN
 from pygame.rect import Rect
 from typing import Union, Tuple
 
-from gameoflife.colors import Color
+from gameoflife.color import Color
 from gameoflife.draw import drawRectBorder
 from gameoflife.mouse import MOUSEBUTTON_LCLICK
 
@@ -181,7 +181,8 @@ class RectButton(BaseButton):
         self._currBgColor = bgColor
         self._surface = None
         if imagePath:
-            self._surface = pygame.transform.scale(pygame.image.load(imagePath), (rect.width, rect.height))
+            image = pygame.image.load(imagePath)
+            self._surface = image #pygame.transform.scale(image, (rect.width, rect.height))
 
     def getRect(self) -> Rect:
         return self._rect

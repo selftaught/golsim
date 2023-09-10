@@ -12,13 +12,13 @@ from typing import List
 from gameoflife.bresenham import bresenham
 from gameoflife.button import BaseButton, ButtonID, RectButton, ToggleRectButton
 from gameoflife.cell import Cell, CellState, getAliveNeighbors, getCellAtPoint
-from gameoflife.colors import Color
+from gameoflife.color import Color
 from gameoflife.config import Config
 from gameoflife.draw import drawRectBorder
 from gameoflife.event import *
 from gameoflife.grid import Grid
 from gameoflife.input import InputMode, InputModeManager
-from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP, MouseMode
+from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
 
@@ -387,24 +387,31 @@ class Game:
         screen.blit(self._cellsurf, (0, 0), cellSurfRect)
         self._grid.draw(screen)
 
-        if self._patternsMenu.enabled():
-            self._patternsMenu.draw(screen)
-
-        if mY < self._actionBarY:
-            if self._pattern:
-                patternSurf = self._pattern.getSurface()
-                screen.blit(patternSurf, pygame.mouse.get_pos())
+        if self._pattern and mY < self._actionBarY:
+            patternSurf = self._pattern.getSurface()
+            screen.blit(patternSurf, pygame.mouse.get_pos())
 
         if inputMode == InputMode.SELECT:
             mcPos, mcPos2 = self._mouseClickPos, self._mouseClickPos2
             if mcPos:
                 if not mcPos2:
-                    selectRect = pygame.Rect(mX, mY, self.mcPos[0] - mX, self.mcPos[1] - mY)
+                    selectRect = pygame.Rect(mX, mY, mcPos[0] - mX, mcPos[1] - mY)
                 else:
                     selectRect = pygame.Rect(mcPos[0], mcPos[1], mcPos2[0] - mcPos[0], mcPos2[1] - mcPos[1])
                 drawRectBorder(screen, selectRect)
 
+        if self._patternsMenu.enabled():
+            self._patternsMenu.draw(screen)
+
         self.drawActionBar()
+
+        if mY < self._actionBarY:
+            cursorSurface = self._inputModeMngr.cursorSurface()
+            if cursorSurface:
+                pygame.mouse.set_visible(False)
+                screen.blit(cursorSurface, (mX, mY))
+        else:
+            pygame.mouse.set_visible(True)
 
         pygame.display.update()
 
@@ -478,6 +485,9 @@ class Game:
 
     def quit(self) -> None:
         self._running = False
+
+    def save(self) -> None:
+        pass
 
     def start(self) -> None:
         self._stopped = False

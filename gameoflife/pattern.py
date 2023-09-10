@@ -3,12 +3,12 @@ import pygame
 
 from pygame import Surface, draw, Rect, Color
 from pygame.font import Font
-from pygame.locals import MOUSEBUTTONUP
+from pygame.locals import MOUSEBUTTONUP, KEYDOWN, K_ESCAPE
 from typing import Union, List
 
 from gameoflife.button import RectButton
 from gameoflife.cell import Cell, CellState
-from gameoflife.colors import Color
+from gameoflife.color import Color
 from gameoflife.draw import drawRectBorder
 from gameoflife.event import EVENT_PATTERNS
 from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
@@ -77,7 +77,7 @@ class Pattern:
     def getSurface(self) -> Surface:
         width = self._cols * self._cellW
         height = len(self._cells) * self._cellH
-        surf = Surface((width, height)).convert_alpha()
+        surf = Surface((width, height))#.convert_alpha()
         surf.fill(self._bgColor)
         for y in range(len(self._cells)):
             for x in range(len(self._cells[y])):
@@ -347,6 +347,11 @@ class PatternMenu:
                 elif self._scrollBarRect.y > y:
                     self._scrollBarRect.y = y
             return True
+        # esc key was pressed
+        elif event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                self.disable()
+                return True
         return False
 
     def draw(self, screen: Surface) -> None:

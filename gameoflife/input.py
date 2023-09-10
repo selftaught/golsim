@@ -1,11 +1,13 @@
+from pygame.cursors import Cursor
 from pygame.event import Event
 from pygame.locals import MOUSEBUTTONDOWN
 from pygame.rect import Rect
 from pygame.surface import Surface
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple, Union
+import pygame
 
 from gameoflife.button import BaseButton, ButtonID, RectButton
-from gameoflife.colors import Color
+from gameoflife.color import Color
 from gameoflife.draw import drawRectBorder
 from gameoflife.mouse import MOUSEBUTTON_LCLICK
 
@@ -26,14 +28,23 @@ class InputModeManager:
         self._btnStartY = btnStartY
         self._buttons:List[BaseButton] = []
         self._mode:Union[str, None] = None
+        self._cursors:Dict = {}
 
     def addMode(self, mode:str, event:Event, imagePath:str=None, active:bool=False) -> None:
         btnX = (len(self._buttons) * self._btnWidth + self._btnMargin) + self._btnStartX
         rect = Rect(btnX, self._btnStartY, self._btnWidth, self._btnHeight)
         button = RectButton(mode, event, rect, imagePath=imagePath, border=False, bgColor=None)
+        image = pygame.image.load(imagePath)
         self._buttons.append(button)
+        self._cursors[mode] = Cursor((15, 5), image)
         if active:
             self._mode = mode
+            pygame.mouse.set_visible(False)
+
+    def cursorSurface(self) -> Cursor:
+        if self._mode in self._cursors:
+            return self._cursors[self._mode].data[1]
+        return None
 
     def eventHandler(self, event:Event) -> bool:
         eventButton = event.dict.get("button")

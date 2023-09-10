@@ -1,5 +1,5 @@
 import pygame
-from gameoflife.colors import Color
+from gameoflife.color import Color
 
 
 class Grid:

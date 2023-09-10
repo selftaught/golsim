@@ -14,6 +14,10 @@ Yet another Game of Life simulator, developed using the python [pygame library](
 
 `python3 game.py`
 
+## Features
+
+
+
 ## Contributing
 
 1. Fork it
@@ -24,10 +28,9 @@ Yet another Game of Life simulator, developed using the python [pygame library](
 
 ## TODO
 
-- [ ] Cell selection & controls (copy, cut, save)
-- [x] Start with a zoomed in view at the center of the cell array
-- [ ] Zooming in/out on cell array (increase/decrease number of visible cells)
-- [ ] Panning to view other parts of the cell array when zoomed
-- [ ] Autosave game cell array seed to a file for replay
-- [ ] Rotate selected pattern by 90 degrees on hot key
-- [ ] Support [RLE](https://conwaylife.com/wiki/Run_Length_Encoded) format
+- Button tooltips
+- Cell selection & controls (copy, cut, save)
+- Zooming in/out on universe(increase/decrease number of visible cells)
+- Panning to view other parts of the universe
+- Rotate selected pattern by 90 degrees on hot key
+- Support [RLE](https://conwaylife.com/wiki/Run_Length_Encoded) format
