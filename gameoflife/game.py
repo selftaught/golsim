@@ -406,10 +406,13 @@ class Game:
         self.drawActionBar()
 
         if mY < self._actionBarY:
-            cursorSurface = self._inputModeMngr.cursorSurface()
-            if cursorSurface:
-                pygame.mouse.set_visible(False)
-                screen.blit(cursorSurface, (mX, mY))
+            if self._patternsMenu.hovered():
+                pygame.mouse.set_visible(True)
+            else:
+                cursorSurface = self._inputModeMngr.cursorSurface()
+                if cursorSurface:
+                    pygame.mouse.set_visible(False)
+                    screen.blit(cursorSurface, (mX, mY))
         else:
             pygame.mouse.set_visible(True)
 

@@ -373,3 +373,9 @@ class PatternMenu:
         drawRectBorder(screen, self._rect)
 
         self._closeBtn.draw(screen)
+
+    def hovered(self) -> bool:
+        (mX, mY) = pygame.mouse.get_pos()
+        if self._rect.collidepoint(mX, mY):
+            return True
+        return False
