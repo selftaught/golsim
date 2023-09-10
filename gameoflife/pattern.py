@@ -8,7 +8,7 @@ from typing import Union, List
 
 from gameoflife.button import RectButton
 from gameoflife.cell import Cell, CellState
-from gameoflife.colors import BLACK, GREY, GREY_DARK1, GREY_LIGHT1, GREY_LIGHT2, RED, RED_LIGHT1, WHITE
+from gameoflife.colors import Color
 from gameoflife.draw import drawRectBorder
 from gameoflife.event import EVENT_PATTERNS
 from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
@@ -31,7 +31,7 @@ class Pattern:
         self._cells: List[List] = []
         self._cellW = 10
         self._cellH = 10
-        self._bgColor = GREY_LIGHT1
+        self._bgColor = Color.GREY_LIGHT
         self._load()
 
     def _load(self):
@@ -127,7 +127,7 @@ class PatternMenuRow:
         self._absY: int = absY
         self._bgColor = bgColor
         self._cursor = pygame.SYSTEM_CURSOR_ARROW
-        self._hoveredBgColor = GREY_LIGHT2
+        self._hoveredBgColor = Color.GREY_LIGHT2
         self._inactiveBgColor = bgColor
         self._menuH: int = 0
         self._padding = 0
@@ -153,7 +153,7 @@ class PatternMenuRow:
         surf.fill(self._bgColor)
         surf.blit(self._pattern.getSurface(), (self._padding, self._padding))
         screen.blit(surf, (self._rect.x, self._rect.y))
-        drawRectBorder(screen, self._rect, GREY_DARK1)
+        drawRectBorder(screen, self._rect, Color.GREY_DARK)
 
     def getHeight(self) -> int:
         return self._rect.height
@@ -194,10 +194,10 @@ class PatternMenu:
         self._padding = 12
         self._maxHeight: Union[int, None] = maxHeight
         self._font = font
-        self._bgColor = GREY_LIGHT1
-        self._closeBtn = RectButton("X", EVENT_PATTERNS, Rect(x, y - 20, 20, 20), RED_LIGHT1)
+        self._bgColor = Color.GREY_LIGHT
+        self._closeBtn = RectButton("X", EVENT_PATTERNS, Rect(x, y - 20, 20, 20), Color.RED_LIGHT)
         self._closeBtn.setFont(font)
-        self._closeBtn.setHoverBackgroundColor(RED)
+        self._closeBtn.setHoverBackgroundColor(Color.RED)
         self._enabled = False
         self._rect = Rect(x, y, 0, 0)
         self._rows = []
@@ -205,7 +205,7 @@ class PatternMenu:
         self._scrollBarEnabled = True
         self._scrollBarWidth = 12
         self._scrollBarHeight = None
-        self._scrollBarColor = BLACK
+        self._scrollBarColor = Color.BLACK
         self._scrollBarRect = None
         self._scrollBarRatio = 1
 
@@ -248,7 +248,7 @@ class PatternMenu:
                 self._rect.y,
                 pattern,
                 self._bgColor,
-                BLACK,
+                Color.BLACK,
             )
             self._rows.append(row)
             yOffset += row.getHeight() + self._padding
@@ -363,7 +363,7 @@ class PatternMenu:
             lineStartPos = (self._scrollBarRect.x, self._rect.y)
             lineEndPos = (self._scrollBarRect.x, self._rect.y + self._rect.height)
             draw.rect(screen, self._scrollBarColor, self._scrollBarRect)
-            draw.line(screen, BLACK, lineStartPos, lineEndPos)
+            draw.line(screen, Color.BLACK, lineStartPos, lineEndPos)
 
         drawRectBorder(screen, self._rect)
 

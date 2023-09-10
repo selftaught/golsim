@@ -1,10 +1,10 @@
 from pygame import draw, Rect
 from pygame.surface import Surface
 
-from gameoflife.colors import BLACK
+from gameoflife.colors import Color
 
 def drawRectBorder(
-    screen: Surface, r:Rect, color=BLACK
+    screen: Surface, r:Rect, color=Color.BLACK
 ) -> None:
     draw.line(screen, color, (r.x, r.y), (r.x + r.w, r.y))
     draw.line(screen, color, (r.x, r.y), (r.x, r.y + r.h))

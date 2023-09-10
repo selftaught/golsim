@@ -5,7 +5,7 @@ from pygame.surface import Surface
 from typing import List, Tuple, Union
 
 from gameoflife.button import BaseButton, ButtonID, RectButton
-from gameoflife.colors import GREEN
+from gameoflife.colors import Color
 from gameoflife.draw import drawRectBorder
 from gameoflife.mouse import MOUSEBUTTON_LCLICK
 
@@ -52,7 +52,7 @@ class InputModeManager:
             if btnId == self._mode:
                 modeRect = btn.getRect()
         if modeRect:
-            drawRectBorder(surface, modeRect, GREEN)
+            drawRectBorder(surface, modeRect, Color.GREEN)
 
     def mode(self) -> str:
         return self._mode

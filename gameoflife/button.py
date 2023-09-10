@@ -1,14 +1,14 @@
 import math
 import pygame
 
-from pygame import Surface, draw, Color
+from pygame import Surface, draw
 from pygame.event import Event
 from pygame.font import Font
 from pygame.locals import MOUSEBUTTONDOWN
 from pygame.rect import Rect
 from typing import Union, Tuple
 
-from gameoflife.colors import BLACK, GREY
+from gameoflife.colors import Color
 from gameoflife.draw import drawRectBorder
 from gameoflife.mouse import MOUSEBUTTON_LCLICK
 
@@ -36,9 +36,9 @@ class BaseButton:
         x: int,
         y: int,
         event: Event,
-        bgColor: Color = GREY,
+        bgColor: pygame.Color = Color.GREY,
         border: bool = True,
-        borderColor: Color = BLACK,
+        borderColor: pygame.Color = Color.BLACK,
     ) -> None:
         self._id = id
         self._x = x
@@ -49,7 +49,7 @@ class BaseButton:
         self._hoverBgColor = bgColor
         self._hoverTextColor = None
         self._border = border
-        self._borderColor = BLACK
+        self._borderColor = Color.BLACK
         self._cursor = pygame.SYSTEM_CURSOR_ARROW
 
     def getBackgroundColor(self) -> Color:
@@ -117,9 +117,9 @@ class CircleButton(BaseButton):
         y: int,
         event: Event,
         radius: float,
-        bgColor: Color = GREY,
+        bgColor: pygame.Color = Color.GREY,
         border: bool = True,
-        borderColor: Color = BLACK
+        borderColor: pygame.Color = Color.BLACK
     ) -> None:
         super().__init__(id, x, y, event, bgColor, border, borderColor)
         self._radius: float = radius
@@ -171,9 +171,9 @@ class RectButton(BaseButton):
         id: str,
         event:Event,
         rect:Rect = Rect(0, 0, 0, 0),
-        bgColor: Color = GREY,
+        bgColor: pygame.Color = Color.GREY,
         border: bool = True,
-        borderColor: Color = BLACK,
+        borderColor: pygame.Color = Color.BLACK,
         imagePath:str = None
     ) -> None:
         super().__init__(id, rect.x, rect.y, event, bgColor, border, borderColor)
@@ -256,9 +256,9 @@ class ToggleRectButton(RectButton):
         onDisable:Tuple[str, Event],
         onEnable:Tuple[str, Event],
         rect:Rect = Rect(0, 0, 0, 0),
-        bgColor: Color = GREY,
+        bgColor: pygame.Color = Color.GREY,
         border: bool = True,
-        borderColor: Color = BLACK,
+        borderColor: pygame.Color = Color.BLACK,
     ) -> None:
         super().__init__(id, None, rect, bgColor, border, borderColor)
         self._rect = rect

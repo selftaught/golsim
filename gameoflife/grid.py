@@ -1,5 +1,5 @@
 import pygame
-from gameoflife.colors import GREY_LIGHT1
+from gameoflife.colors import Color
 
 
 class Grid:
@@ -31,7 +31,7 @@ class Grid:
                 line_end_y = self.rows * self.rowHeight
                 pygame.draw.line(
                     screen,
-                    GREY_LIGHT1,
+                    Color.GREY_LIGHT,
                     (line_start_x, line_start_y),
                     (line_end_x, line_end_y),
                     1,
@@ -44,7 +44,7 @@ class Grid:
                 line_end_y = y * self.rowHeight
                 pygame.draw.line(
                     screen,
-                    GREY_LIGHT1,
+                    Color.GREY_LIGHT,
                     (line_start_x, line_start_y),
                     (line_end_x, line_end_y),
                     1,

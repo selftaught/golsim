@@ -12,7 +12,7 @@ from typing import List
 from gameoflife.bresenham import bresenham
 from gameoflife.button import BaseButton, ButtonID, RectButton, ToggleRectButton
 from gameoflife.cell import Cell, CellState, getAliveNeighbors, getCellAtPoint
-from gameoflife.colors import BLACK, BLUE, GREEN, GREY, GREY_DARK1, GREY_DARK2, GREY_LIGHT1, WHITE
+from gameoflife.colors import Color
 from gameoflife.config import Config
 from gameoflife.draw import drawRectBorder
 from gameoflife.event import *
@@ -101,7 +101,7 @@ class Game:
 
         for button in self._buttons:
             button.setFont(self._font)
-            button.setHoverBackgroundColor(GREY_DARK2)
+            button.setHoverBackgroundColor(Color.GREY_DARK2)
             if isinstance(button, RectButton):
                 button.setRect(pygame.Rect(buttonX, buttonY, btnWidth, btnHeight))
             buttonX += btnWidth + btnMargin
@@ -371,7 +371,7 @@ class Game:
         cellH, cellW = self._cellH, self._cellW
         colsVis, rowsVis = self._colsVisible, self._rowsVisible
 
-        screen.fill(WHITE)
+        screen.fill(Color.WHITE)
 
         for y in range(rowsVis):
             for x in range(colsVis):
@@ -412,10 +412,10 @@ class Game:
         bg = pygame.Rect(
             self._actionBarX, self._actionBarY, self._width, self._actionBarHeight
         )
-        pygame.draw.rect(self._screen, GREY_LIGHT1, bg)
+        pygame.draw.rect(self._screen, Color.GREY_LIGHT, bg)
         pygame.draw.line(
             self._screen,
-            GREY,
+            Color.GREY,
             (self._actionBarX, self._actionBarY),
             (self._actionBarX + self._width, self._actionBarY),
         )
@@ -436,13 +436,13 @@ class Game:
         statFont = pygame.font.Font(None, 11)
         for stat in stats:
             fontSize = statFont.size(stat)
-            textImg = self._font.render(stat, True, BLACK)
+            textImg = self._font.render(stat, True, Color.BLACK)
             self._screen.blit(
                 textImg, (10, (self._actionBarY + 5) + ((fontSize[1] * 2) * statIdx))
             )
             statIdx += 1
 
-        zoomText = self._font.render("Zoom: {:.2f}".format(self.zoom), True, BLACK)
+        zoomText = self._font.render("Zoom: {:.2f}".format(self.zoom), True, Color.BLACK)
         self._screen.blit(zoomText, (self._width - 100, self._actionBarY + 5))
         # vcText = self._font.render(
         #     "visible cols: {}".format(self._colsVisible), True, BLACK
