@@ -109,6 +109,7 @@ class BaseButton:
     def update(self) -> None:
         raise NotImplementedError("button update() not implemented!")
 
+
 class CircleButton(BaseButton):
     def __init__(
         self,
@@ -164,6 +165,7 @@ class CircleButton(BaseButton):
                 pygame.mouse.set_cursor(self._cursor)
             if self._currBgColor != self._bgColor:
                 self._currBgColor = self._bgColor
+
 
 class RectButton(BaseButton):
     def __init__(

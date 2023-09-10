@@ -382,10 +382,11 @@ class Game:
 
         cellSurfRect = pygame.Rect(cameraX * cellW, cameraY * cellH, colsVis * cellW, rowsVis * cellH)
         inputMode = self._inputModeMngr.mode()
-        (mX, mY) = pygame.mouse.get_pos()
 
         screen.blit(self._cellsurf, (0, 0), cellSurfRect)
         self._grid.draw(screen)
+
+        (mX, mY) = pygame.mouse.get_pos()
 
         if self._pattern and mY < self._actionBarY:
             patternSurf = self._pattern.getSurface()
