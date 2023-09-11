@@ -265,7 +265,7 @@ class Game:
                         self._mouseClickPos = (mX, mY)
                         print(f'self._mouseClickPos = ({mX}, {mY})')
 
-                    if self._inputModeMngr.mode() == InputMode.DRAW and not self.stopped():
+                    if inputMode == InputMode.DRAW and not self.stopped():
                         self.stop()
                         self._buttons[self._startStopBtnIdx].toggle()
 
