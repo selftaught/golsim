@@ -261,6 +261,9 @@ class Game:
                         else:
                             self._mouseClickPos = (mX, mY)
                             self._mouseClickPos2 = None
+                    elif inputMode == InputMode.PAN:
+                        self._mouseClickPos = (mX, mY)
+                        print(f'self._mouseClickPos = ({mX}, {mY})')
 
                     if self._inputModeMngr.mode() == InputMode.DRAW and not self.stopped():
                         self.stop()
@@ -350,6 +353,7 @@ class Game:
                     if alive == 3:
                         cell.setNextState(CellState.ALIVE)
                         self._cellsBirthed += 1
+                        self._cellsAlive += 1
                         changed.append(cell)
                     else:
                         cell.setNextState(CellState.DEAD)

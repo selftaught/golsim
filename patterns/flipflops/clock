@@ -1,4 +1,16 @@
-0010
-1010
-0101
-0100
+{
+    "name": "clock",
+    "period": 2,
+    "type": "oscillator",
+    "configuration": "muttering-moat",
+    "discovered": {
+        "by": "Simon Norton",
+        "year": 1970
+    },
+    "seed": [
+        "0010",
+        "1010",
+        "0101",
+        "0100"
+    ]
+}
