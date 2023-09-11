@@ -7,7 +7,7 @@
         "width": 10,
         "height": 10
     },
-    "fps": 30,
+    "fps": 60,
     "font": {
         "size": 24
     }
