@@ -376,9 +376,7 @@ class Game:
 
         for y in range(rowsVis):
             for x in range(colsVis):
-                cellX = cameraX + x
-                cellY = cameraY + y
-                cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
+                cell = getCellAtPoint(cameraX + x, cameraY + y, self._cells, self._rows)
                 cell.draw(self._cellsurf)
 
         cellSurfRect = pygame.Rect(cameraX * cellW, cameraY * cellH, colsVis * cellW, rowsVis * cellH)
@@ -391,7 +389,7 @@ class Game:
 
         if self._pattern and mY < self._actionBarY:
             patternSurf = self._pattern.getSurface()
-            screen.blit(patternSurf, pygame.mouse.get_pos())
+            screen.blit(patternSurf, (mX, mY))
 
         if inputMode == InputMode.SELECT:
             mcPos, mcPos2 = self._mouseClickPos, self._mouseClickPos2
