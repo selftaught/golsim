@@ -6,6 +6,9 @@ from typing import Tuple
 from gameoflife.draw import drawRectBorder
 
 
+# TODO: dynamic mode - detect boundaries and change position accordingly
+# TODO: static mode - static position on a specified side
+# TODO: theme - allow for additional styling parameters
 class Tooltip:
     def __init__(self, text:str, font:SysFont, elePos:Tuple[int, int], bgColor:Tuple[int, int, int], padding:int=5) -> None:
         self._bgColor:Tuple[int, int, int] = bgColor
