@@ -120,14 +120,6 @@ class Game:
             y = int(i / self._rows)
             self._cells.append(Cell(x, y, self._cellW, self._cellH, CellState.DEAD))
 
-    def initPatternsByType(self, path: str, type: PatternType) -> List[Pattern]:
-        patterns:List[Pattern] = []
-        for p in glob.glob(path):
-            pattern = Pattern(path.split("/")[-1], p, type)
-            if pattern.getRows():
-                patterns.append(pattern)
-        return patterns
-
     def initPatterns(self) -> None:
         patternTypes = {
             "oscillators": PatternType.Oscillator,
@@ -139,7 +131,11 @@ class Game:
 
         patterns = []
         for name, type in patternTypes.items():
-            patterns += self.initPatternsByType(f"patterns/{name}/*", type)
+            path = f"patterns/{name}/*"
+            for p in glob.glob(path):
+                pattern = Pattern(path.split("/")[-1], p, type)
+                if pattern.getRows():
+                    patterns.append(pattern)
 
         self._patternsMenu.setPatterns(patterns)
 
