@@ -4,6 +4,7 @@ import pygame
 from pygame import Surface, draw
 from pygame.event import Event
 from pygame.font import Font
+from pygame.freetype import SysFont
 from pygame.locals import MOUSEBUTTONDOWN
 from pygame.rect import Rect
 from typing import Union, Tuple
@@ -39,6 +40,7 @@ class BaseButton:
         bgColor: pygame.Color = Color.GREY,
         border: bool = True,
         borderColor: pygame.Color = Color.BLACK,
+        tooltip: bool = False,
     ) -> None:
         self._id = id
         self._x = x
@@ -51,6 +53,7 @@ class BaseButton:
         self._border = border
         self._borderColor = Color.BLACK
         self._cursor = pygame.SYSTEM_CURSOR_ARROW
+        self._tooltip = tooltip
 
     def getBackgroundColor(self) -> Color:
         return self._bgColor
@@ -123,9 +126,10 @@ class CircleButton(BaseButton):
         radius: float,
         bgColor: pygame.Color = Color.GREY,
         border: bool = True,
-        borderColor: pygame.Color = Color.BLACK
+        borderColor: pygame.Color = Color.BLACK,
+        tooltip: bool = False
     ) -> None:
-        super().__init__(id, x, y, event, bgColor, border, borderColor)
+        super().__init__(id, x, y, event, bgColor, border, borderColor, tooltip)
         self._radius: float = radius
 
     def getRadius(self) -> float:
@@ -141,15 +145,15 @@ class CircleButton(BaseButton):
             return True
         return False
 
-    def draw(self, surface: Surface) -> None:
+    def draw(self, surface:Surface) -> None:
+        ftFont = SysFont('sans', 24)
         draw.circle(surface, self._currBgColor, (self._x, self._y), self._radius, 0)
         if self._border:
             draw.circle(surface, self._borderColor, (self._x, self._y), self._radius, 1)
-        textImg = self._font.render(self._id, True, BLACK)
-        fontSize = self._font.size(self._id)
-        textX = self._x - int(fontSize[0] / 2)
-        textY = self._y - int(fontSize[1] / 2) + 1
-        surface.blit(textImg, (textX, textY))
+        fontRect = ftFont.get_rect(self._id)
+        textX = self._x - int(fontRect.width / 2)
+        textY = self._y - int(fontRect.height / 2) + 1
+        ftFont.render_to(surface, (textX, textY), self._id)
 
     def eventHandler(self, event:Event):
         pass
@@ -179,9 +183,10 @@ class RectButton(BaseButton):
         bgColor: pygame.Color = Color.GREY,
         border: bool = True,
         borderColor: pygame.Color = Color.BLACK,
-        imagePath:str = None
+        imagePath: str = None,
+        tooltip: bool = False,
     ) -> None:
-        super().__init__(id, rect.x, rect.y, event, bgColor, border, borderColor)
+        super().__init__(id, rect.x, rect.y, event, bgColor, border, borderColor, tooltip)
         self._rect = rect
         self._currBgColor = bgColor
         self._surface = None
@@ -220,20 +225,34 @@ class RectButton(BaseButton):
             return True
         return False
 
-    def draw(self, surface: Surface) -> None:
+    def draw(self, surface:Surface) -> None:
         if self._currBgColor:
             draw.rect(surface, self._currBgColor, self._rect)
 
         if self._surface:
             surface.blit(self._surface, (self._x, self._y))
         else:
-            textImg = self._font.render(self._id, True, (255, 255, 255))
-            fontSize = self._font.size(self._id)
-            textX = self._rect.x + ((self._rect.width / 2) - (fontSize[0] / 2))
-            textY = self._rect.y + ((self._rect.height / 2) - (fontSize[1] / 2))
-            surface.blit(textImg, (textX, textY))
+            fontRect = self._font.get_rect(self._id)
+            textX = self._rect.x + ((self._rect.width / 2) - (fontRect.width / 2))
+            textY = self._rect.y + ((self._rect.height / 2) - (fontRect.height / 2))
+            self._font.render_to(surface, (textX, textY), self._id)
+
         if self._border:
             drawRectBorder(surface, self._rect, self._borderColor)
+
+        if self._tooltip and self.hovered():
+            self.drawTooltip(surface)
+
+    def drawTooltip(self, surface:Surface) -> None:
+        fontRect = self._font.get_rect(self._id)
+        padding = 5
+        x = self._rect.x
+        y = self._rect.y - fontRect.height - 15
+        r = Rect(x, y, fontRect.width + (padding * 2), fontRect.height + (padding * 2))
+        bgColor = (255, 255, 255) if not self._currBgColor else self._currBgColor
+        draw.rect(surface, bgColor, r)
+        self._font.render_to(surface, (x + padding, y + padding), self._id)
+        drawRectBorder(surface, r)
 
     def eventHandler(self, event:Event):
         buttonCode = event.dict.get("button")

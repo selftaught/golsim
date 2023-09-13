@@ -1,0 +1,15 @@
+{
+    "name": "toad",
+    "period": 2,
+    "type": "oscillator",
+    "discovered": {
+        "by": "Simon Norton",
+        "year": 1970
+    },
+    "seed": [
+        "10",
+        "11",
+        "11",
+        "01"
+    ]
+}

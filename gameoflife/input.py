@@ -1,5 +1,6 @@
 from pygame.cursors import Cursor
 from pygame.event import Event
+from pygame.font import Font
 from pygame.locals import MOUSEBUTTONDOWN
 from pygame.rect import Rect
 from pygame.surface import Surface
@@ -20,7 +21,7 @@ class InputMode:
     ZOOM_OUT = ButtonID.ZOOM_OUT
 
 class InputModeManager:
-    def __init__(self, btnWidth:int=30, btnHeight:int=30, btnMargin:int=10, btnStartX:int=0, btnStartY:int=0) -> None:
+    def __init__(self, btnWidth:int=30, btnHeight:int=30, btnMargin:int=10, btnStartX:int=0, btnStartY:int=0, font:Font=None) -> None:
         self._btnMargin = btnMargin
         self._btnHeight = btnHeight
         self._btnWidth = btnWidth
@@ -29,11 +30,13 @@ class InputModeManager:
         self._buttons:List[BaseButton] = []
         self._mode:Union[str, None] = None
         self._cursors:Dict = {}
+        self._font:Font = font
 
     def addMode(self, mode:str, event:Event, imagePath:str=None, active:bool=False) -> None:
         btnX = (len(self._buttons) * self._btnWidth + self._btnMargin) + self._btnStartX
         rect = Rect(btnX, self._btnStartY, self._btnWidth, self._btnHeight)
-        button = RectButton(mode, event, rect, imagePath=imagePath, border=False, bgColor=None)
+        button = RectButton(mode, event, rect, imagePath=imagePath, border=False, bgColor=None, tooltip=True)
+        button.setFont(self._font)
         image = pygame.image.load(imagePath)
         self._buttons.append(button)
         self._cursors[mode] = Cursor((15, 5), image)

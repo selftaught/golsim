@@ -4,7 +4,7 @@ import pygame
 import time
 
 from pygame.event import Event
-from pygame.font import Font
+from pygame.freetype import SysFont
 from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE, TEXTINPUT, MOUSEMOTION
 from pygame.surface import Surface
 from typing import List
@@ -34,8 +34,8 @@ class Game:
         self._buttons = []
         self._cfg = Config()
         self._clock = pygame.time.Clock()
-        self._fontSize = self._cfg.get('font.size', default=24)
-        self._font = Font(None, self._fontSize)
+        self._fontSize = self._cfg.get('font.size', default=12)
+        self._font = SysFont('Hack', self._fontSize)
         self._fps = self._cfg.get("fps", default=5)
         self._height = self._cfg.get("screen.height")
         self._width = self._cfg.get("screen.width")
@@ -69,7 +69,7 @@ class Game:
         self._mouseButtonHold = False
         self._mouseClickPos = None
         self._mouseClickPos2 = None
-        self._inputModeMngr = InputModeManager()
+        self._inputModeMngr = InputModeManager(font=self._font)
         self._lastMarkedCell = None
 
         self.zoom = 1
@@ -449,25 +449,15 @@ class Game:
         ]
 
         statIdx = 0
-        statFont = pygame.font.Font(None, 11)
+        statFont = SysFont('Sans', 15)
         for stat in stats:
-            fontSize = statFont.size(stat)
-            textImg = self._font.render(stat, True, Color.BLACK)
-            self._screen.blit(
-                textImg, (10, (self._actionBarY + 5) + ((fontSize[1] * 2) * statIdx))
-            )
+            fontRect = statFont.get_rect(stat)
+            statFont.render_to(self._screen, (5, (self._actionBarY + 5) + ((fontRect.height + 4) * statIdx)), stat)
             statIdx += 1
 
-        zoomText = self._font.render("Zoom: {:.2f}".format(self.zoom), True, Color.BLACK)
-        self._screen.blit(zoomText, (self._width - 100, self._actionBarY + 5))
-        # vcText = self._font.render(
-        #     "visible cols: {}".format(self._colsVisible), True, BLACK
-        # )
-        # self._screen.blit(vcText, (self._width - 130, self._actionBarY + 25))
-        # vrText = self._font.render(
-        #     "visible rows: {}".format(self._rowsVisible), True, BLACK
-        # )
-        # self._screen.blit(vrText, (self._width - 130, self._actionBarY + 45))
+        statFont.render_to(self._screen,  (125, self._actionBarY + 5), "Zoom: {:.2f}".format(self.zoom))
+        statFont.render_to(self._screen,  (125, self._actionBarY + 20), f"Visible Cols: {self._colsVisible}")
+        statFont.render_to(self._screen,  (125, self._actionBarY + 35), f"Visible Rows: {self._rowsVisible}")
 
     def clear(self) -> None:
         startStopBtn = self._buttons[self._startStopBtnIdx]
