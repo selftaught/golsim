@@ -245,7 +245,7 @@ class RectButton(BaseButton):
         if self._border:
             drawRectBorder(surface, self._rect, self._borderColor)
 
-        if self._tooltip and self.hovered():
+        if self._tooltip:
             self._tooltip.draw(surface)
 
     def eventHandler(self, event:Event):
@@ -260,6 +260,12 @@ class RectButton(BaseButton):
             return True
 
     def update(self) -> None:
+        if self._tooltip:
+            if self.hovered():
+                self._tooltip.enable()
+            else:
+                self._tooltip.disable()
+
         if self._rect.collidepoint(pygame.mouse.get_pos()):
             self._cursor = pygame.SYSTEM_CURSOR_HAND
             self._currBgColor = self._hoverBgColor
