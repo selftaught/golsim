@@ -12,6 +12,7 @@ from typing import Union, Tuple
 from gameoflife.color import Color
 from gameoflife.draw import drawRectBorder
 from gameoflife.mouse import MOUSEBUTTON_LCLICK
+from gameoflife.tooltip import Tooltip
 
 
 
@@ -53,7 +54,11 @@ class BaseButton:
         self._border = border
         self._borderColor = Color.BLACK
         self._cursor = pygame.SYSTEM_CURSOR_ARROW
-        self._tooltip = tooltip
+        self._font = SysFont('Sans', 12)
+        self._tooltip = None
+
+        if tooltip:
+            self._tooltip = Tooltip(self._id, self._font, (self._x, self._y), Color.GREY)
 
     def getBackgroundColor(self) -> Color:
         return self._bgColor
@@ -84,6 +89,8 @@ class BaseButton:
 
     def setFont(self, font: Font) -> None:
         self._font = font
+        if self._tooltip:
+            self._tooltip.setFont(font)
 
     def setBackgroundColor(self, bgColor: Color) -> None:
         self._bgColor = bgColor
@@ -155,9 +162,6 @@ class CircleButton(BaseButton):
         textY = self._y - int(fontRect.height / 2) + 1
         ftFont.render_to(surface, (textX, textY), self._id)
 
-    def eventHandler(self, event:Event):
-        pass
-
     def update(self) -> None:
         (mX, mY) = pygame.mouse.get_pos()
         sqMouseX = (mX - self._x) ** 2
@@ -192,7 +196,8 @@ class RectButton(BaseButton):
         self._surface = None
         if imagePath:
             image = pygame.image.load(imagePath)
-            self._surface = image #pygame.transform.scale(image, (rect.width, rect.height))
+            self._surface = image
+            #self._surface = pygame.transform.scale(image, (rect.width, rect.height))
 
     def getRect(self) -> Rect:
         return self._rect
@@ -241,18 +246,7 @@ class RectButton(BaseButton):
             drawRectBorder(surface, self._rect, self._borderColor)
 
         if self._tooltip and self.hovered():
-            self.drawTooltip(surface)
-
-    def drawTooltip(self, surface:Surface) -> None:
-        fontRect = self._font.get_rect(self._id)
-        padding = 5
-        x = self._rect.x
-        y = self._rect.y - fontRect.height - 15
-        r = Rect(x, y, fontRect.width + (padding * 2), fontRect.height + (padding * 2))
-        bgColor = (255, 255, 255) if not self._currBgColor else self._currBgColor
-        draw.rect(surface, bgColor, r)
-        self._font.render_to(surface, (x + padding, y + padding), self._id)
-        drawRectBorder(surface, r)
+            self._tooltip.draw(surface)
 
     def eventHandler(self, event:Event):
         buttonCode = event.dict.get("button")

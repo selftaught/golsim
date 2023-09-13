@@ -347,7 +347,6 @@ class PatternMenu:
                 elif self._scrollBarRect.y > y:
                     self._scrollBarRect.y = y
             return True
-        # esc key was pressed
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 self.disable()
