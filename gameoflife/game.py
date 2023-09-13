@@ -455,9 +455,11 @@ class Game:
             statFont.render_to(self._screen, (5, (self._actionBarY + 5) + ((fontRect.height + 4) * statIdx)), stat)
             statIdx += 1
 
-        statFont.render_to(self._screen,  (125, self._actionBarY + 5), "Zoom: {:.2f}".format(self.zoom))
-        statFont.render_to(self._screen,  (125, self._actionBarY + 20), f"Visible Cols: {self._colsVisible}")
-        statFont.render_to(self._screen,  (125, self._actionBarY + 35), f"Visible Rows: {self._rowsVisible}")
+        statFont.render_to(self._screen,  (125, self._actionBarY + 5), "FPS: {:.2f}".format(self._clock.get_fps()))
+        statFont.render_to(self._screen,  (125, self._actionBarY + 20), "Zoom: {:.2f}".format(self.zoom))
+        statFont.render_to(self._screen,  (125, self._actionBarY + 35), f"Visible Cols: {self._colsVisible}")
+        statFont.render_to(self._screen,  (125, self._actionBarY + 50), f"Visible Rows: {self._rowsVisible}")
+
 
     def clear(self) -> None:
         startStopBtn = self._buttons[self._startStopBtnIdx]
