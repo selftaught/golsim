@@ -4,8 +4,8 @@
         "height": 800
     },
     "cell": {
-        "width": 10,
-        "height": 10
+        "width": 3,
+        "height": 3
     },
     "fps": 60,
     "font": {

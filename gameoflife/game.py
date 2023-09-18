@@ -3,9 +3,10 @@ import glob
 import pygame
 import time
 
+from collections import namedtuple
 from pygame.event import Event
 from pygame.freetype import SysFont
-from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE, TEXTINPUT, MOUSEMOTION
+from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d, K_s, K_w, K_ESCAPE, K_MINUS, K_PLUS, TEXTINPUT, MOUSEMOTION
 from pygame.surface import Surface
 from typing import List
 
@@ -21,6 +22,9 @@ from gameoflife.input import InputMode, InputModeManager
 from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
 from gameoflife.pattern import Pattern, PatternMenu, PatternType
 
+class ZoomDir:
+    IN = 0
+    OUT = 1
 
 class Game:
     def __init__(self) -> None:
@@ -36,7 +40,7 @@ class Game:
         self._clock = pygame.time.Clock()
         self._fontSize = self._cfg.get('font.size', default=12)
         self._font = SysFont('Hack', self._fontSize)
-        self._fps = self._cfg.get("fps", default=5)
+        self._fps = self._cfg.get("fps", default=60)
         self._height = self._cfg.get("screen.height")
         self._width = self._cfg.get("screen.width")
         self._screen = pygame.display.set_mode([self._width, self._height])
@@ -45,15 +49,9 @@ class Game:
         self._actionBarHeight = 70
         self._actionBarX = 0
         self._actionBarY = self._height - self._actionBarHeight
-        self._cells = None
         self._cols = 200
-        self._colsVisible = int(self._width / self._cellW)
         self._rows = 200
-        self._rowsVisible = int(self._height / self._cellH)
-        self._grid = Grid(self._colsVisible, self._rowsVisible, self._cellW, self._cellH)
-        self._cellsurf = Surface((self._cols * self._cellW, self._rows * self._cellH))
-        self._cameraX = int((self._cols / 2) - (self._colsVisible / 2))
-        self._cameraY = int((self._rows / 2) - (self._rowsVisible / 2))
+        self._grid = Grid(self._cols / self._cellW, self._rows / self._cellH, self._cellW, self._cellH)
         self._cameraMoveDist = 5
         self._clear = False
         self._next = False
@@ -72,10 +70,10 @@ class Game:
         self._inputModeMngr = InputModeManager(font=self._font)
         self._lastMarkedCell = None
 
-        self.zoom = 1
-        self.zoomMax = 10
-        self.zoomMin = 1
-        self.zoomStep = 1
+        self._zoom = 1
+        self._zoomMax = 10
+        self._zoomMin = 1
+        self._zoomStep = 1
 
         self.initPatterns()
         self.initButtons()
@@ -145,8 +143,8 @@ class Game:
             inputMode = self._inputModeMngr.mode()
 
             (mX, mY) = pygame.mouse.get_pos()
-            cellX = int(mX / self._cellW) + self._cameraX
-            cellY = int(mY / self._cellH) + self._cameraY
+            cellX = int(mX / self._cellW)
+            cellY = int(mY / self._cellH)
 
             if self._patternsMenu.enabled():
                 ret = self._patternsMenu.eventHandler(event)
@@ -176,18 +174,21 @@ class Game:
                                     cell.setState(CellState.ALIVE)
                     else:
                         cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
-                        cell.setState(CellState.ALIVE)
+                        if cell:
+                            cell.setState(CellState.ALIVE)
                 elif event.type == MOUSEMOTION:
                     if self._mouseButtonHold and mY < self._actionBarY:
                         cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
-                        cell.setState(CellState.ALIVE)
+                        if cell:
+                            cell.setState(CellState.ALIVE)
                         if self._lastMarkedCell:
                             (prevX, prevY) = self._lastMarkedCell
                             if cellX - prevX != 0 or cellY - prevY != 0:
                                 for point in list(bresenham(prevX, prevY, cellX, cellY)):
                                     (x, y) = point
                                     c = getCellAtPoint(x, y, self._cells, self._rows)
-                                    c.setState(CellState.ALIVE)
+                                    if c:
+                                        c.setState(CellState.ALIVE)
                         self._lastMarkedCell = (cellX, cellY)
                 elif event.type == MOUSEBUTTONUP:
                     if buttonCode == MOUSEBUTTON_RCLICK:
@@ -209,42 +210,47 @@ class Game:
                 self.quit()
 
             elif event.type == KEYDOWN:
+                print(event.key)
                 if event.key == K_ESCAPE:
                     self._pattern = None
                     self._mouseClickPos = None
                     self._mouseClickPos2 = None
                 elif event.key == K_g:
                     self._grid.toggle()
-                elif event.key == K_a: # left
-                    if self._cameraX:
-                        self._cameraX -= self._cameraMoveDist
-                elif event.key == K_d: # right
-                    if self._cameraX < self._cols - self._colsVisible:
-                        self._cameraX += self._cameraMoveDist
-                elif event.key == K_s: # down
-                    if self._cameraY < self._rows - self._rowsVisible:
-                        self._cameraY += self._cameraMoveDist
-                elif event.key == K_w: # up
-                    if self._cameraY:
-                        self._cameraY -= self._cameraMoveDist
+                elif event.key == K_MINUS:
+                    self.zoom(ZoomDir.OUT)
+                elif event.key == K_a:
+                    self.zoom(ZoomDir.IN)
+                # elif event.key == K_a: # left
+                #     if self._cameraX:
+                #         self._cameraX -= self._cameraMoveDist
+                # elif event.key == K_d: # right
+                #     if self._cameraX < self._cols - self._colsVisible:
+                #         self._cameraX += self._cameraMoveDist
+                # elif event.key == K_s: # down
+                #     if self._cameraY < self._rows - self._rowsVisible:
+                #         self._cameraY += self._cameraMoveDist
+                # elif event.key == K_w: # up
+                #     if self._cameraY:
+                #         self._cameraY -= self._cameraMoveDist
 
             elif event.type == TEXTINPUT:
                 eventText = event.dict.get('text')
                 if eventText:
                     eventText = eventText.lower()
 
-                if eventText == 'a':
-                    if self._cameraX:
-                        self._cameraX -= self._cameraMoveDist
-                elif eventText == 'd':
-                    if self._cameraX < self._cols - self._colsVisible:
-                        self._cameraX += self._cameraMoveDist
-                elif eventText == 's':
-                    if self._cameraY < self._rows - self._rowsVisible:
-                        self._cameraY += self._cameraMoveDist
-                elif eventText == 'w':
-                    if self._cameraY:
-                        self._cameraY -= self._cameraMoveDist
+                # if eventText == 'a':
+                #     if self._cameraX:
+                #         self._cameraX -= self._cameraMoveDist
+                # elif eventText == 'd':
+                #     if self._cameraX < self._cols - self._colsVisible:
+                #         self._cameraX += self._cameraMoveDist
+                # elif eventText == 's':
+                #     if self._cameraY < self._rows - self._rowsVisible:
+                #         self._cameraY += self._cameraMoveDist
+                # elif eventText == 'w':
+                #     if self._cameraY:
+                #         self._cameraY -= self._cameraMoveDist
 
             elif event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
                 if mY < self._actionBarY:
@@ -268,14 +274,14 @@ class Game:
             elif event.type == MOUSEBUTTONUP:
                 if (
                     buttonCode == MOUSEBUTTON_SCROLL_DOWN
-                    and self.zoom >= self.zoomMin + self.zoomStep
+                    and self._zoom >= self._zoomMin + self._zoomStep
                 ):
-                    self.zoom -= self.zoomStep
+                    self._zoom -= self.zoomStep
                 elif (
                     buttonCode == MOUSEBUTTON_SCROLL_UP
-                    and self.zoom < self.zoomMax - self.zoomStep
+                    and self._zoom < self._zoomMax - self._zoomStep
                 ):
-                    self.zoom += self.zoomStep
+                    self._zoom += self.zoomStep
                 elif buttonCode == MOUSEBUTTON_LCLICK:
                     self._mouseButtonHold = False
                     self._lastMarkedCell = None
@@ -368,29 +374,67 @@ class Game:
 
     def draw(self) -> None:
         screen = self._screen
-        cameraX, cameraY = self._cameraX, self._cameraY
+        #cameraX, cameraY = self._cameraX, self._cameraY
         cellH, cellW = self._cellH, self._cellW
-        colsVis, rowsVis = self._colsVisible, self._rowsVisible
+        #colsVis, rowsVis = self._colsVisible, self._rowsVisible
+        screen.fill(Color.BLACK)
 
-        screen.fill(Color.WHITE)
+        universeWidth = self._cols * self._cellW
+        universeHeight = self._rows * self._cellH
+        universeSurface = Surface((universeWidth, universeHeight))
 
-        for y in range(rowsVis):
-            for x in range(colsVis):
-                cell = getCellAtPoint(cameraX + x, cameraY + y, self._cells, self._rows)
-                cell.draw(self._cellsurf)
+        # Loop through the universe of cells and draw them onto universeSurface
+        for y in range(self._rows):
+            for x in range(self._cols):
+                cell = getCellAtPoint(x, y, self._cells, self._rows)
+                cell.draw(universeSurface)
 
-        cellSurfRect = pygame.Rect(cameraX * cellW, cameraY * cellH, colsVis * cellW, rowsVis * cellH)
-        inputMode = self._inputModeMngr.mode()
+        # Overflow calculations
+        universeWindowOverflowY = (self._height - universeHeight) * -1
+        universeWindowOverflowX = (self._width - universeWidth) * -1
 
-        screen.blit(self._cellsurf, (0, 0), cellSurfRect)
-        self._grid.draw(screen)
+        # print(f'universeSurface = {universeSurface}')
+        # print(f'screen.width = {self._width}')
+        # print(f'screen.height = {self._height}')
+        # print(f'universe.height = {universeHeight}')
+        # print(f'universe.width = {universeWidth}')
+        # print(f'universeWindowOverflowY = {universeWindowOverflowY}')
+        # print(f'universeWindowOverflowX = {universeWindowOverflowX}')
+
+        # Rect area of cell surface to blit on to screen
+        universeScreenDestX, universeScreenDestY = 0, 0
+        universeVisibleArea = pygame.Rect(0, 0, 0, 0)
+        universeVisibleArea.width = self._width if universeWidth >= self._width else universeWidth
+        universeVisibleArea.height = self._height if universeHeight >= self._height else universeHeight
+
+        if universeWindowOverflowX > 0:
+            universeVisibleArea.left = universeWindowOverflowX / 2
+        else:
+            universeScreenDestX = (universeWindowOverflowX / 2) * -1
+
+        if universeWindowOverflowY > 0:
+            universeVisibleArea.top = universeWindowOverflowY / 2
+        else:
+            universeScreenDestY = (universeWindowOverflowY / 2) * -1
+
+        screen.blit(universeSurface, (universeScreenDestX, universeScreenDestY), universeVisibleArea)
+
+        # print(f'universeScreenDestX = {universeScreenDestX}')
+        # print(f'universeScreenDestY = {universeScreenDestY}')
+        # print(f'universeVisibleArea = {universeVisibleArea}')
+        # print('------')
+        # Grid
+        #self._grid.draw(screen)
 
         (mX, mY) = pygame.mouse.get_pos()
 
+        # Draw selected pattern at mouse if above action bar
         if self._pattern and mY < self._actionBarY:
             patternSurf = self._pattern.getSurface()
             screen.blit(patternSurf, (mX, mY))
 
+        inputMode = self._inputModeMngr.mode()
+        # Select input mode - draw selection rect at last two mouse click points
         if inputMode == InputMode.SELECT:
             mcPos, mcPos2 = self._mouseClickPos, self._mouseClickPos2
             if mcPos:
@@ -400,11 +444,14 @@ class Game:
                     selectRect = pygame.Rect(mcPos[0], mcPos[1], mcPos2[0] - mcPos[0], mcPos2[1] - mcPos[1])
                 drawRectBorder(screen, selectRect)
 
+        # Patterns menu
         if self._patternsMenu.enabled():
             self._patternsMenu.draw(screen)
 
+        # Action bar
         self.drawActionBar()
 
+        # Cursor logic
         if mY < self._actionBarY:
             if self._patternsMenu.hovered():
                 pygame.mouse.set_visible(True)
@@ -416,6 +463,7 @@ class Game:
         else:
             pygame.mouse.set_visible(True)
 
+        # Update display
         pygame.display.update()
 
     def drawActionBar(self) -> None:
@@ -450,10 +498,9 @@ class Game:
             statIdx += 1
 
         statFont.render_to(self._screen, (125, self._actionBarY + 5), "FPS: {:.2f}".format(self._clock.get_fps()))
-        statFont.render_to(self._screen, (125, self._actionBarY + 20), "Zoom: {:.2f}".format(self.zoom))
-        statFont.render_to(self._screen, (125, self._actionBarY + 35), f"Visible Cols: {self._colsVisible}")
-        statFont.render_to(self._screen, (125, self._actionBarY + 50), f"Visible Rows: {self._rowsVisible}")
-
+        statFont.render_to(self._screen, (125, self._actionBarY + 20), "Zoom: {:.2f}".format(self._zoom))
+        statFont.render_to(self._screen, (125, self._actionBarY + 35), f"Cell width: {self._cellW}")
+        statFont.render_to(self._screen, (125, self._actionBarY + 50), f"Cell height: {self._cellH}")
 
     def clear(self) -> None:
         startStopBtn = self._buttons[self._startStopBtnIdx]
@@ -492,3 +539,23 @@ class Game:
 
     def stopped(self) -> bool:
         return self._stopped
+
+    def zoom(self, direction:int) -> None:
+        if direction == ZoomDir.IN:
+            self._cellW += 1
+            self._cellH += 1
+        elif direction == ZoomDir.OUT:
+            # Decrease cell size
+            if self._cellW > 1:
+                self._cellW -= 1
+            if self._cellH > 1:
+                self._cellH -= 1
+        else:
+            return
+
+        for i in range(self._cols * self._rows):
+            x = i % self._rows
+            y = int(i / self._rows)
+            c = getCellAtPoint(x, y, self._cells, self._rows)
+            c.setHeight(self._cellH)
+            c.setWidth(self._cellW)
