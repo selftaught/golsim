@@ -276,12 +276,12 @@ class Game:
                     buttonCode == MOUSEBUTTON_SCROLL_DOWN
                     and self._zoom >= self._zoomMin + self._zoomStep
                 ):
-                    self._zoom -= self.zoomStep
+                    self._zoom -= self._zoomStep
                 elif (
                     buttonCode == MOUSEBUTTON_SCROLL_UP
                     and self._zoom < self._zoomMax - self._zoomStep
                 ):
-                    self._zoom += self.zoomStep
+                    self._zoom += self._zoomStep
                 elif buttonCode == MOUSEBUTTON_LCLICK:
                     self._mouseButtonHold = False
                     self._lastMarkedCell = None
