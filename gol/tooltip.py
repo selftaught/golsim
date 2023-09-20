@@ -3,7 +3,7 @@ from pygame.freetype import SysFont
 from pygame.surface import Surface
 from typing import Tuple
 
-from gameoflife.draw import drawRectBorder
+from gol.draw import drawRectBorder
 
 
 # TODO: dynamic mode - detect boundaries and change position accordingly

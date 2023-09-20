@@ -28,7 +28,6 @@ Yet another Game of Life simulator, developed using the python [pygame library](
 
 ## TODO
 
-- Input mode tooltips (on hover)
 - Pattern tooltips (on hover)
 - Cell selection & controls (copy, cut, save)
 - Zooming in/out on universe (decrease/increase cell size) on mouse scroll

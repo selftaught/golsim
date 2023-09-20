@@ -1,7 +1,7 @@
 from pygame import draw, Rect
 from pygame.surface import Surface
 
-from gameoflife.color import Color
+from gol.color import Color
 
 def drawRectBorder(
     screen: Surface, r:Rect, color=Color.BLACK

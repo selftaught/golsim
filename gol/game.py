@@ -10,17 +10,17 @@ from pygame.locals import KEYDOWN, MOUSEBUTTONUP, MOUSEBUTTONDOWN, K_g, K_a, K_d
 from pygame.surface import Surface
 from typing import List
 
-from gameoflife.bresenham import bresenham
-from gameoflife.button import BaseButton, ButtonID, RectButton, ToggleRectButton
-from gameoflife.cell import Cell, CellState, getAliveNeighbors, getCellAtPoint
-from gameoflife.color import Color
-from gameoflife.config import Config
-from gameoflife.draw import drawRectBorder
-from gameoflife.event import *
-from gameoflife.grid import Grid
-from gameoflife.input import InputMode, InputModeManager
-from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
-from gameoflife.pattern import Pattern, PatternMenu, PatternType
+from gol.bresenham import bresenham
+from gol.button import BaseButton, ButtonID, RectButton, ToggleRectButton
+from gol.cell import Cell, CellState, getAliveNeighbors, getCellAtPoint
+from gol.color import Color
+from gol.config import Config
+from gol.draw import drawRectBorder
+from gol.event import *
+from gol.grid import Grid
+from gol.input import InputMode, InputModeManager
+from gol.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_RCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
+from gol.pattern import Pattern, PatternMenu, PatternType
 
 class ZoomDir:
     IN = 0

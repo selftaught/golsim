@@ -9,10 +9,10 @@ from pygame.locals import MOUSEBUTTONDOWN
 from pygame.rect import Rect
 from typing import Union, Tuple
 
-from gameoflife.color import Color
-from gameoflife.draw import drawRectBorder
-from gameoflife.mouse import MOUSEBUTTON_LCLICK
-from gameoflife.tooltip import Tooltip
+from gol.color import Color
+from gol.draw import drawRectBorder
+from gol.mouse import MOUSEBUTTON_LCLICK
+from gol.tooltip import Tooltip
 
 
 

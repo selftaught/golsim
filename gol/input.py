@@ -7,10 +7,10 @@ from pygame.surface import Surface
 from typing import Dict, List, Tuple, Union
 import pygame
 
-from gameoflife.button import BaseButton, ButtonID, RectButton
-from gameoflife.color import Color
-from gameoflife.draw import drawRectBorder
-from gameoflife.mouse import MOUSEBUTTON_LCLICK
+from gol.button import BaseButton, ButtonID, RectButton
+from gol.color import Color
+from gol.draw import drawRectBorder
+from gol.mouse import MOUSEBUTTON_LCLICK
 
 
 class InputMode:

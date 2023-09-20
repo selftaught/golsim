@@ -6,12 +6,12 @@ from pygame.font import Font
 from pygame.locals import MOUSEBUTTONUP, KEYDOWN, K_ESCAPE
 from typing import Union, List
 
-from gameoflife.button import RectButton
-from gameoflife.cell import Cell, CellState
-from gameoflife.color import Color
-from gameoflife.draw import drawRectBorder
-from gameoflife.event import EVENT_PATTERNS
-from gameoflife.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
+from gol.button import RectButton
+from gol.cell import Cell, CellState
+from gol.color import Color
+from gol.draw import drawRectBorder
+from gol.event import EVENT_PATTERNS
+from gol.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
 
 
 class PatternType:

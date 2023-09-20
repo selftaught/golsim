@@ -1,5 +1,5 @@
 import pygame
-from gameoflife.game import Game
+from gol.game import Game
 
 Game().loop()
 pygame.quit()
