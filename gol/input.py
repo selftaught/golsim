@@ -10,7 +10,7 @@ import pygame
 from gol.button import BaseButton, ButtonID, RectButton
 from gol.color import Color
 from gol.draw import drawRectBorder
-from gol.mouse import MOUSEBUTTON_LCLICK
+from gol.mouse import MB_LCLICK
 
 
 class InputMode:
@@ -51,7 +51,7 @@ class InputModeManager:
 
     def eventHandler(self, event:Event) -> bool:
         eventButton = event.dict.get("button")
-        if event.type == MOUSEBUTTONDOWN and eventButton == MOUSEBUTTON_LCLICK:
+        if event.type == MOUSEBUTTONDOWN and eventButton == MB_LCLICK:
             for btn in self._buttons:
                 if btn.clicked():
                     self._mode = btn.getId()

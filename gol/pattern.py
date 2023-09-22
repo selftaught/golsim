@@ -11,7 +11,7 @@ from gol.cell import Cell, CellState
 from gol.color import Color
 from gol.draw import drawRectBorder
 from gol.event import EVENT_PATTERNS
-from gol.mouse import MOUSEBUTTON_LCLICK, MOUSEBUTTON_SCROLL_DOWN, MOUSEBUTTON_SCROLL_UP
+from gol.mouse import MB_LCLICK, MB_SCROLL_DOWN, MB_SCROLL_UP
 
 
 class PatternType:
@@ -297,7 +297,7 @@ class PatternMenu:
         button = event.dict.get("button")
         (mX, mY) = pygame.mouse.get_pos()
         (x, y, w, h) = (self._rect.x, self._rect.y, self._rect.width, self._rect.height)
-        if button == MOUSEBUTTON_LCLICK:
+        if button == MB_LCLICK:
             # Close button
             if self._closeBtn.clicked(mX, mY):
                 self.disable()
@@ -326,9 +326,9 @@ class PatternMenu:
             if (mX >= x and mX <= x + w) and (mY >= y and mY <= y + h):
                 return True
         # Scrollbar mouse scrolling
-        elif button in [MOUSEBUTTON_SCROLL_UP, MOUSEBUTTON_SCROLL_DOWN]:
+        elif button in [MB_SCROLL_UP, MB_SCROLL_DOWN]:
             scrollStep = 5
-            if button == MOUSEBUTTON_SCROLL_DOWN:
+            if button == MB_SCROLL_DOWN:
                 scrollBarBottom = self._scrollBarRect.y + self._scrollBarRect.h
                 menuBottom = y + menuHeight
                 if scrollBarBottom <= menuBottom - scrollStep:
@@ -339,7 +339,7 @@ class PatternMenu:
                     rem = menuBottom - scrollBarBottom
                     if rem < scrollStep:
                         self._scrollBarRect.y = menuBottom - self._scrollBarRect.height
-            elif button == MOUSEBUTTON_SCROLL_UP:
+            elif button == MB_SCROLL_UP:
                 if self._scrollBarRect.y >= y + scrollStep:
                     self._scrollBarRect.y -= scrollStep
                     for row in self._rows:

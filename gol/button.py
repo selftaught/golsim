@@ -11,7 +11,7 @@ from typing import Union, Tuple
 
 from gol.color import Color
 from gol.draw import drawRectBorder
-from gol.mouse import MOUSEBUTTON_LCLICK
+from gol.mouse import MB_LCLICK
 from gol.tooltip import Tooltip
 
 
@@ -250,7 +250,7 @@ class RectButton(BaseButton):
 
     def eventHandler(self, event:Event):
         buttonCode = event.dict.get("button")
-        if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
+        if event.type == MOUSEBUTTONDOWN and buttonCode == MB_LCLICK:
             if self.clicked():
                 pygame.event.post(self._event)
 
@@ -299,7 +299,7 @@ class ToggleRectButton(RectButton):
 
     def eventHandler(self, event:Event):
         buttonCode = event.dict.get("button")
-        if event.type == MOUSEBUTTONDOWN and buttonCode == MOUSEBUTTON_LCLICK:
+        if event.type == MOUSEBUTTONDOWN and buttonCode == MB_LCLICK:
             if self.clicked():
                 self.toggle()
 

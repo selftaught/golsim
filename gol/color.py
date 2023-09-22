@@ -5,7 +5,7 @@ class Color:
     BLACK = PygameColor(0, 0, 0)
     BLUE = PygameColor(0, 0, 255)
     GREEN = PygameColor(0, 255, 0)
-    GREY = PygameColor(150, 150, 150)
+    GREY = PygameColor(211, 211, 211)
     GREY_DARK = PygameColor(169, 169, 169)
     GREY_DARK2 = PygameColor(144, 144, 144)
     GREY_LIGHT = PygameColor(249, 249, 249)
