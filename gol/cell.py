@@ -69,13 +69,42 @@ class Cell:
         self._rect.width = width
         self.surface = Surface(self._rect.size)
 
+def universeMousePos(dimension, cellW, cellH, universeXOff, universeYOff, screenW, screenH) -> Union[Tuple[int, int], None]:
+    universeScreenDestX, universeScreenDestY = 0, 0
+    universeWidth = dimension * cellW
+    universeHeight = dimension * cellH
+    universeScreenMarginY = (screenH - universeHeight) * -1
+    universeScreenMarginX = (screenW - universeWidth) * -1
+    universeRect = Rect(0, 0, universeWidth, universeHeight)
+
+    # if universeScreenMarginX > 0:
+    #     universeRect.left = (universeScreenMarginX / 2) + universeXOff
+    # else:
+    universeRect.left = ((universeScreenMarginX / 2) * -1) + universeXOff
+
+    # if universeScreenMarginY > 0:
+    #     universeRect.top = (universeScreenMarginY / 2) - universeYOff
+    # else:
+    universeRect.top = ((universeScreenMarginY / 2) * -1) + universeYOff
+
+    (mX, mY) = pygame.mouse.get_pos()s
+
+    # print(universeRect)
+    # print(f'cellW: {cellW}\ncellH: {cellH}')
+    # print(f'universeScreenMarginX: {universeScreenMarginX}\nuniverseScreenMarginY: {universeScreenMarginY}')
+    # print(f'mouse x: {mX}\nmouse y: {mY}\nuniverse dimension: {dimension}\nuniverse x off: {universeXOff}\nuniverse y off: {universeYOff}\n----')
+
+    if universeRect.collidepoint(mX, mY):
+        return (mX - universeRect.left, mY - universeRect.top)
+
+    return None
+
 def getCellAtPoint(x, y, cells, dimension) -> Cell:
     pos = dimension * y + x
     count = len(cells)
     if pos < count and x >= 0:
         return cells[pos]
     return None
-    #raise Exception(f"cell point outside of boundary: (x: {x}, y: {y}, rows: {rows}, numCells: {len(cells)})")
 
 def getCellStateAtPoint(x, y, cells, dimension) -> int:
     pos = dimension * y + x

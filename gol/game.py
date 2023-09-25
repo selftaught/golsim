@@ -12,7 +12,7 @@ from typing import List
 
 from gol.bresenham import bresenham
 from gol.button import BaseButton, ButtonID, RectButton, ToggleRectButton
-from gol.cell import Cell, CellState, getAliveNeighbors, getCellAtPoint
+from gol.cell import Cell, CellState, getAliveNeighbors, getCellAtPoint, universeMousePos
 from gol.color import Color
 from gol.config import Config
 from gol.draw import drawRectBorder
@@ -171,11 +171,17 @@ class Game:
                                 if selectedCell.getState() == CellState.ALIVE:
                                     cell.setState(CellState.ALIVE)
                     else:
+                        universeMousePos = self.getUniverseMousePos()
+                        cellX = int(universeMousePos[0] / self._cellW)
+                        cellY = int(universeMousePos[1] / self._cellH)
                         cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                         if cell:
                             cell.setState(CellState.ALIVE)
                 elif event.type == MOUSEMOTION:
                     if self._mouseButtonHold and mY < self._actionBarY:
+                        universeMousePos = self.getUniverseMousePos()
+                        cellX = int(universeMousePos[0] / self._cellW)
+                        cellY = int(universeMousePos[1] / self._cellH)
                         cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                         if cell:
                             cell.setState(CellState.ALIVE)
@@ -512,6 +518,17 @@ class Game:
 
     def stopped(self) -> bool:
         return self._stopped
+
+    def getUniverseMousePos(self):
+        return universeMousePos(
+            self._rows,
+            self._cellW,
+            self._cellH,
+            self._universeXOff,
+            self._universeYOff,
+            self._width,
+            self._height
+        )
 
     def zoomIn(self) -> None:
         self._zoom(ZOOM_IN)
