@@ -77,17 +77,10 @@ def universeMousePos(dimension, cellW, cellH, universeXOff, universeYOff, screen
     universeScreenMarginX = (screenW - universeWidth) * -1
     universeRect = Rect(0, 0, universeWidth, universeHeight)
 
-    # if universeScreenMarginX > 0:
-    #     universeRect.left = (universeScreenMarginX / 2) + universeXOff
-    # else:
     universeRect.left = ((universeScreenMarginX / 2) * -1) + universeXOff
-
-    # if universeScreenMarginY > 0:
-    #     universeRect.top = (universeScreenMarginY / 2) - universeYOff
-    # else:
     universeRect.top = ((universeScreenMarginY / 2) * -1) + universeYOff
 
-    (mX, mY) = pygame.mouse.get_pos()s
+    (mX, mY) = pygame.mouse.get_pos()
 
     # print(universeRect)
     # print(f'cellW: {cellW}\ncellH: {cellH}')

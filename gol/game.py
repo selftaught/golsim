@@ -157,48 +157,47 @@ class Game:
                 continue
             # -----------------------------------------------------
             if inputMode == InputMode.DRAW:
-                if event.type == MOUSEBUTTONDOWN and buttonCode == MB_LCLICK and mY < self._actionBarY:
-                    if self._pattern:
-                        selectedCells = self._pattern.getCells()
-                        for y in range(len(selectedCells)):
-                            for x in range(len(selectedCells[y])):
-                                selectedCell = selectedCells[y][x]
-                                nextCellX = cellX + x
-                                nextCellY = cellY + y
-                                if nextCellX >= self._cols or nextCellY >= self._rows:
-                                    break
-                                cell = getCellAtPoint(nextCellX, nextCellY, self._cells, self._rows)
-                                if selectedCell.getState() == CellState.ALIVE:
-                                    cell.setState(CellState.ALIVE)
-                    else:
-                        universeMousePos = self.getUniverseMousePos()
-                        cellX = int(universeMousePos[0] / self._cellW)
-                        cellY = int(universeMousePos[1] / self._cellH)
-                        cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
-                        if cell:
-                            cell.setState(CellState.ALIVE)
-                elif event.type == MOUSEMOTION:
-                    if self._mouseButtonHold and mY < self._actionBarY:
-                        universeMousePos = self.getUniverseMousePos()
-                        cellX = int(universeMousePos[0] / self._cellW)
-                        cellY = int(universeMousePos[1] / self._cellH)
-                        cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
-                        if cell:
-                            cell.setState(CellState.ALIVE)
-                        if self._lastMarkedCell:
-                            (prevX, prevY) = self._lastMarkedCell
-                            if cellX - prevX != 0 or cellY - prevY != 0:
-                                for point in list(bresenham(prevX, prevY, cellX, cellY)):
-                                    (x, y) = point
-                                    cell = getCellAtPoint(x, y, self._cells, self._rows)
-                                    if cell:
+                universeMousePos = self.getUniverseMousePos()
+                if universeMousePos:
+                    cellX = int(universeMousePos[0] / self._cellW)
+                    cellY = int(universeMousePos[1] / self._cellH)
+                    if event.type == MOUSEBUTTONDOWN and buttonCode == MB_LCLICK and mY < self._actionBarY:
+                        if self._pattern:
+                            selectedCells = self._pattern.getCells()
+                            for y in range(len(selectedCells)):
+                                for x in range(len(selectedCells[y])):
+                                    selectedCell = selectedCells[y][x]
+                                    nextCellX = cellX + x
+                                    nextCellY = cellY + y
+                                    if nextCellX >= self._cols or nextCellY >= self._rows:
+                                        break
+                                    cell = getCellAtPoint(nextCellX, nextCellY, self._cells, self._rows)
+                                    if selectedCell.getState() == CellState.ALIVE:
                                         cell.setState(CellState.ALIVE)
-                        self._lastMarkedCell = (cellX, cellY)
-                elif event.type == MOUSEBUTTONUP:
-                    if buttonCode == MB_RCLICK:
-                        cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
-                        if cell:
-                            cell.setState(CellState.DEAD)
+                        else:
+                            universeMousePos = self.getUniverseMousePos()
+                            cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
+                            if cell:
+                                cell.setState(CellState.ALIVE)
+                    elif event.type == MOUSEMOTION:
+                        if self._mouseButtonHold and mY < self._actionBarY:
+                            cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
+                            if cell:
+                                cell.setState(CellState.ALIVE)
+                            if self._lastMarkedCell:
+                                (prevX, prevY) = self._lastMarkedCell
+                                if cellX - prevX != 0 or cellY - prevY != 0:
+                                    for point in list(bresenham(prevX, prevY, cellX, cellY)):
+                                        (x, y) = point
+                                        cell = getCellAtPoint(x, y, self._cells, self._rows)
+                                        if cell:
+                                            cell.setState(CellState.ALIVE)
+                            self._lastMarkedCell = (cellX, cellY)
+                    elif event.type == MOUSEBUTTONUP:
+                        if buttonCode == MB_RCLICK:
+                            cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
+                            if cell:
+                                cell.setState(CellState.DEAD)
             elif inputMode == InputMode.PAN:
                 pass
 
