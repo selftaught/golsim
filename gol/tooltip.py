@@ -18,6 +18,7 @@ class Tooltip:
         self._padding:int = padding
         self._text:str = text
 
+
     def draw(self, surface:Surface) -> None:
         if self._enabled:
             fontRect = self._font.get_rect(self._text)
@@ -27,11 +28,14 @@ class Tooltip:
             self._font.render_to(surface, (x + self._padding, y + self._padding), self._text)
             drawRectBorder(surface, rect)
 
+
     def setFont(self, font:SysFont) -> None:
         self._font = font
 
+
     def disable(self) -> None:
         self._enabled = False
+
 
     def enable(self) -> None:
         self._enabled = True

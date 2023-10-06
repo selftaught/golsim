@@ -12,14 +12,14 @@ from typing import List
 
 from gol.bresenham import bresenham
 from gol.button import BaseButton, ButtonID, RectButton, ToggleRectButton
-from gol.cell import Cell, CellState, getAliveNeighbors, getCellAtPoint, universeMousePos
+from gol.cell import Cell, CellState, CellStats, getAliveNeighbors, getCellAtPoint, universeMousePos
 from gol.color import Color
 from gol.config import Config
 from gol.draw import drawRectBorder
 from gol.event import *
 from gol.grid import Grid
 from gol.input import InputMode, InputModeManager
-from gol.mouse import MB_LCLICK, MB_RCLICK, MB_SCROLL_DOWN, MB_SCROLL_UP
+from gol.mouse import MB_DOWN, MB_LCLICK, MB_RCLICK, MB_SCROLL_DOWN, MB_SCROLL_UP
 from gol.pattern import Pattern, PatternMenu, PatternType
 
 ZOOM_IN = 0
@@ -31,8 +31,7 @@ class Game:
         pygame.display.set_caption("Game of Life")
 
         iconImg = pygame.image.load("images/gameoflife.png")
-        if iconImg:
-            pygame.display.set_icon(iconImg)
+        if iconImg: pygame.display.set_icon(iconImg)
 
         self._buttons = []
         self._cfg = Config()
@@ -51,18 +50,14 @@ class Game:
         self._cols = 200
         self._rows = 200
         self._grid = Grid(self._cols / self._cellW, self._rows / self._cellH, self._cellW, self._cellH)
-        self._cameraMoveDist = 5
         self._clear = False
         self._next = False
         self._running = True
         self._stopped = True
         self._patternsMenu = PatternMenu(50, 50, maxHeight=400, font=self._font)
         self._pattern = None
-        self._generation = 0
         self._cells = []
-        self._cellsAlive = 0
-        self._cellsBirthed = 0
-        self._cellsDied = 0
+        self._cellStats = CellStats()
         self._mouseButtonHold = False
         self._mouseClickPos = None
         self._mouseClickPos2 = None
@@ -76,6 +71,7 @@ class Game:
         self.initPatterns()
         self.initButtons()
         self.initCells()
+
 
     def initButtons(self) -> None:
         btnHeight = 30
@@ -106,8 +102,9 @@ class Game:
         self._inputModeMngr.addMode(ButtonID.DRAW, EVENT_INPUT_MODE_DRAW, imagePath="images/draw.png", active=True)
         self._inputModeMngr.addMode(ButtonID.PAN, EVENT_INPUT_MODE_PAN, imagePath="images/pan.png")
         self._inputModeMngr.addMode(ButtonID.SELECT, EVENT_INPUT_MODE_PAN, imagePath="images/select.png")
-        self._inputModeMngr.addMode(ButtonID.ZOOM_IN, EVENT_INPUT_MODE_PAN, imagePath="images/zoomin.png")
-        self._inputModeMngr.addMode(ButtonID.ZOOM_OUT, EVENT_INPUT_MODE_PAN, imagePath="images/zoomout.png")
+        self._inputModeMngr.addMode(ButtonID.ZOOM_IN, EVENT_INPUT_MODE_Z_IN, imagePath="images/zoomin.png")
+        self._inputModeMngr.addMode(ButtonID.ZOOM_OUT, EVENT_INPUT_MODE_Z_OUT, imagePath="images/zoomout.png")
+
 
     def initCells(self) -> None:
         self._cells = []
@@ -115,6 +112,7 @@ class Game:
             x = i % self._rows
             y = int(i / self._rows)
             self._cells.append(Cell(x, y, self._cellW, self._cellH, CellState.DEAD))
+
 
     def initPatterns(self) -> None:
         patternTypes = {
@@ -135,10 +133,12 @@ class Game:
 
         self._patternsMenu.setPatterns(patterns)
 
+
     def eventLoop(self) -> None:
         for event in pygame.event.get():
             buttonCode = event.dict.get("button")
             inputMode = self._inputModeMngr.mode()
+            mbLeftClickDown = event.type == MB_DOWN and buttonCode == MB_LCLICK
 
             (mX, mY) = pygame.mouse.get_pos()
             cellX = int(mX / self._cellW)
@@ -161,7 +161,7 @@ class Game:
                 if universeMousePos:
                     cellX = int(universeMousePos[0] / self._cellW)
                     cellY = int(universeMousePos[1] / self._cellH)
-                    if event.type == MOUSEBUTTONDOWN and buttonCode == MB_LCLICK and mY < self._actionBarY:
+                    if mbLeftClickDown and mY < self._actionBarY:
                         if self._pattern:
                             selectedCells = self._pattern.getCells()
                             for y in range(len(selectedCells)):
@@ -179,25 +179,26 @@ class Game:
                             cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                             if cell:
                                 cell.setState(CellState.ALIVE)
+
                     elif event.type == MOUSEMOTION:
                         if self._mouseButtonHold and mY < self._actionBarY:
                             cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
-                            if cell:
-                                cell.setState(CellState.ALIVE)
+                            if cell: cell.setState(CellState.ALIVE)
                             if self._lastMarkedCell:
                                 (prevX, prevY) = self._lastMarkedCell
                                 if cellX - prevX != 0 or cellY - prevY != 0:
                                     for point in list(bresenham(prevX, prevY, cellX, cellY)):
                                         (x, y) = point
                                         cell = getCellAtPoint(x, y, self._cells, self._rows)
-                                        if cell:
-                                            cell.setState(CellState.ALIVE)
+                                        if cell: cell.setState(CellState.ALIVE)
                             self._lastMarkedCell = (cellX, cellY)
+
                     elif event.type == MOUSEBUTTONUP:
                         if buttonCode == MB_RCLICK:
                             cell = getCellAtPoint(cellX, cellY, self._cells, self._rows)
                             if cell:
                                 cell.setState(CellState.DEAD)
+
             elif inputMode == InputMode.PAN:
                 pass
 
@@ -205,12 +206,12 @@ class Game:
                 pass
 
             elif inputMode == InputMode.ZOOM_IN:
-                if event.type == MOUSEBUTTONDOWN and buttonCode == MB_LCLICK:
+                if mbLeftClickDown:
                     self.zoomIn()
                     continue
 
             elif inputMode == InputMode.ZOOM_OUT:
-                if event.type == MOUSEBUTTONDOWN and buttonCode == MB_LCLICK:
+                if mbLeftClickDown:
                     self.zoomOut()
                     continue
             # -----------------------------------------------------
@@ -251,7 +252,7 @@ class Game:
                 elif eventText == 'w':
                     self._universeYOff -= self._universeStep
 
-            elif event.type == MOUSEBUTTONDOWN and buttonCode == MB_LCLICK:
+            elif mbLeftClickDown:
                 if mY < self._actionBarY:
                     self._mouseButtonHold = True
                     if inputMode == InputMode.SELECT:
@@ -295,6 +296,7 @@ class Game:
             for button in self._buttons:
                 button.eventHandler(event)
 
+
     def loop(self) -> None:
         while self.running():
             self.eventLoop()
@@ -302,6 +304,7 @@ class Game:
             self.draw()
             self._clock.tick(self._fps)
         pygame.quit()
+
 
     def update(self) -> None:
         if self.cleared():
@@ -316,14 +319,18 @@ class Game:
         if self._patternsMenu.enabled():
             self._patternsMenu.update()
 
+        if self._mouseButtonHold and self._inputModeMngr.mode() == InputMode.PAN:
+            universeMousePos = self.getUniverseMousePos()
+            (mX, mY) = pygame.mouse.get_pos()
+            print(universeMousePos)
+
         if not self.stopped() or self.next():
-            self._generation += 1
-            self._cellsAlive = 0
-            self._cellsBirthed = 0
-            self._cellsDied = 0
+            self._cellStats.generation += 1
+            self._cellStats.alive = 0
+            self._cellStats.births = 0
+            self._cellStats.deaths = 0
 
             changed = []
-            #loopOneStart = time.time()
             for pos in range(self._rows * self._cols):
                 x = pos % self._rows
                 y = int(pos / self._rows)
@@ -338,37 +345,35 @@ class Game:
                 if cellState == CellState.ALIVE:
                     if alive < 2 or alive > 3:
                         cell.setNextState(CellState.DEAD)
-                        self._cellsDied += 1
+                        self._cellStats.deaths += 1
                         changed.append(cell)
                     elif alive == 2 or alive == 3:
                         cell.setNextState(CellState.ALIVE)
-                        self._cellsAlive += 1
+                        self._cellStats.alive += 1
                         changed.append(cell)
                 elif cellState == CellState.DEAD:
                     if alive == 3:
                         cell.setNextState(CellState.ALIVE)
-                        self._cellsBirthed += 1
-                        self._cellsAlive += 1
+                        self._cellStats.births += 1
+                        self._cellStats.alive += 1
                         changed.append(cell)
                     else:
                         cell.setNextState(CellState.DEAD)
                         changed.append(cell)
-            # loopOneElapsed = time.time() - loopOneStart
-            # loopTwoStart = time.time()
+
             for cell in changed:
                 currState = cell.getState()
                 nextState = cell.getNextState()
                 cell.setState(nextState)
-            # loopTwoElapsed = time.time() - loopTwoStart
-            # print('update() loop 1 took {:.2} seconds'.format(loopOneElapsed))
-            # print('update() loop 2 took {:.2} seconds'.format(loopTwoElapsed))
-            if not self._cellsAlive:
+
+            if not self._cellStats.alive:
                 self.stop()
+
 
     def draw(self) -> None:
         screen = self._screen
-        cellH, cellW = self._cellH, self._cellW
         screen.fill(Color.GREY)
+        cellH, cellW = self._cellH, self._cellW
 
         universeWidth = self._cols * self._cellW
         universeHeight = self._rows * self._cellH
@@ -407,7 +412,7 @@ class Game:
 
         (mX, mY) = pygame.mouse.get_pos()
 
-        # Draw selected pattern at mouse if above action bar
+        # Draw selected pattern at mouse if mouse is in the universe
         if self._pattern and mY < self._actionBarY:
             patternSurf = self._pattern.getSurface()
             screen.blit(patternSurf, (mX, mY))
@@ -442,8 +447,8 @@ class Game:
         else:
             pygame.mouse.set_visible(True)
 
-        # Update display
         pygame.display.update()
+
 
     def drawActionBar(self) -> None:
         bg = pygame.Rect(
@@ -463,10 +468,10 @@ class Game:
         self._inputModeMngr.draw(self._screen)
 
         stats = [
-            f"Alive: {self._cellsAlive}",
-            f"Births: {self._cellsBirthed}",
-            f"Deaths: {self._cellsDied}",
-            f"Generation: {self._generation}",
+            f"Alive: {self._cellStats.alive}",
+            f"Births: {self._cellStats.births}",
+            f"Deaths: {self._cellStats.deaths}",
+            f"Generation: {self._cellStats.generation}",
         ]
 
         statIdx = 0
@@ -480,43 +485,50 @@ class Game:
         statFont.render_to(self._screen, (125, self._actionBarY + 20), f"Cell width: {self._cellW}")
         statFont.render_to(self._screen, (125, self._actionBarY + 35), f"Cell height: {self._cellH}")
 
+
     def clear(self) -> None:
         startStopBtn = self._buttons[self._startStopBtnIdx]
         if startStopBtn.getId() == ButtonID.STOP:
             startStopBtn.toggle()
         self._clear = True
-        self._cellsAlive = 0
-        self._cellsBirthed = 0
-        self._cellsDied = 0
-        self._generation = 0
+        self._cellStats.reset()
+
 
     def cleared(self) -> bool:
         val = self._clear
         self._clear = False
         return val
 
+
     def next(self) -> bool:
         val = self._next
         self._next = False
         return val
 
+
     def running(self) -> bool:
         return self._running
+
 
     def quit(self) -> None:
         self._running = False
 
+
     def save(self) -> None:
         pass
+
 
     def start(self) -> None:
         self._stopped = False
 
+
     def stop(self) -> None:
         self._stopped = True
 
+
     def stopped(self) -> bool:
         return self._stopped
+
 
     def getUniverseMousePos(self):
         return universeMousePos(
@@ -529,11 +541,14 @@ class Game:
             self._height
         )
 
+
     def zoomIn(self) -> None:
         self._zoom(ZOOM_IN)
 
+
     def zoomOut(self) -> None:
         self._zoom(ZOOM_OUT)
+
 
     def _zoom(self, direction:int) -> None:
         if direction == ZOOM_IN:

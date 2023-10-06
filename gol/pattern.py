@@ -21,6 +21,7 @@ class PatternType:
     FlipFlop: int = 4
     Methuselah: int = 5
 
+
 class Pattern:
     def __init__(self, name: str, path: str, type: PatternType) -> None:
         self._rows: int = 0
@@ -209,26 +210,33 @@ class PatternMenu:
         self._scrollBarRect = None
         self._scrollBarRatio = 1
 
+
     def enable(self) -> None:
         self._enabled = True
+
 
     def enabled(self) -> bool:
         return self._enabled
 
+
     def disable(self) -> None:
         self._enabled = False
 
+
     def toggle(self) -> None:
         self._enabled = not self._enabled
+
 
     def setFont(self, font: Font) -> None:
         self._font = font
         self._closeBtn.setFont(font)
 
+
     def setMaxHeight(self, height:int) -> None:
         self._maxHeight = height
         if self._maxHeight > self._rect.height:
             self._rect.height = self._maxHeight
+
 
     def setPatterns(self, patterns: List[Pattern]) -> None:
         self._patterns = patterns
@@ -278,6 +286,7 @@ class PatternMenu:
             self._scrollBarHeight,
         )
 
+
     def getHeight(self) -> int:
         height = self._padding
         for row in self._rows:
@@ -286,10 +295,12 @@ class PatternMenu:
             return self._maxHeight
         return height
 
+
     def update(self) -> None:
         self._closeBtn.update()
         for row in self._rows:
             row.update()
+
 
     def eventHandler(self, event) -> bool:
         sbHalfHeight = self._scrollBarRect.height / 2
@@ -353,6 +364,7 @@ class PatternMenu:
                 return True
         return False
 
+
     def draw(self, screen: Surface) -> None:
         draw.rect(screen, self._bgColor, self._rect)
 
@@ -372,6 +384,7 @@ class PatternMenu:
         drawRectBorder(screen, self._rect)
 
         self._closeBtn.draw(screen)
+
 
     def hovered(self) -> bool:
         (mX, mY) = pygame.mouse.get_pos()

@@ -1,7 +1,6 @@
 from pygame.cursors import Cursor
 from pygame.event import Event
 from pygame.font import Font
-from pygame.locals import MOUSEBUTTONDOWN
 from pygame.rect import Rect
 from pygame.surface import Surface
 from typing import Dict, List, Tuple, Union
@@ -10,7 +9,7 @@ import pygame
 from gol.button import BaseButton, ButtonID, RectButton
 from gol.color import Color
 from gol.draw import drawRectBorder
-from gol.mouse import MB_LCLICK
+from gol.mouse import MB_LCLICK, MB_DOWN
 
 
 class InputMode:
@@ -19,6 +18,7 @@ class InputMode:
     SELECT = ButtonID.SELECT
     ZOOM_IN = ButtonID.ZOOM_IN
     ZOOM_OUT = ButtonID.ZOOM_OUT
+
 
 class InputModeManager:
     def __init__(self, btnWidth:int=30, btnHeight:int=30, btnMargin:int=10, btnStartX:int=0, btnStartY:int=0, font:Font=None) -> None:
@@ -32,6 +32,7 @@ class InputModeManager:
         self._cursors:Dict = {}
         self._font:Font = font
 
+
     def addMode(self, mode:str, event:Event, imagePath:str=None, active:bool=False) -> None:
         btnX = (len(self._buttons) * self._btnWidth + self._btnMargin) + self._btnStartX
         rect = Rect(btnX, self._btnStartY, self._btnWidth, self._btnHeight)
@@ -44,19 +45,23 @@ class InputModeManager:
             self._mode = mode
             pygame.mouse.set_visible(False)
 
+
     def cursorSurface(self) -> Cursor:
         if self._mode in self._cursors:
             return self._cursors[self._mode].data[1]
         return None
 
+
     def eventHandler(self, event:Event) -> bool:
         eventButton = event.dict.get("button")
-        if event.type == MOUSEBUTTONDOWN and eventButton == MB_LCLICK:
+        # handles switching between input modes based on where the mouse clicks
+        if event.type == MB_DOWN and eventButton == MB_LCLICK:
             for btn in self._buttons:
                 if btn.clicked():
                     self._mode = btn.getId()
                     return True
         return False
+
 
     def draw(self, surface:Surface) -> None:
         modeRect = None
@@ -68,24 +73,31 @@ class InputModeManager:
         if modeRect:
             drawRectBorder(surface, modeRect, Color.GREEN)
 
+
     def mode(self) -> str:
         return self._mode
+
 
     def update(self) -> None:
         for btn in self._buttons:
             btn.update()
 
+
     def setBtnWidth(self, width:int):
         self._btnWidth = width
+
 
     def setBtnHeight(self, height:int):
         self._btnHeight = height
 
+
     def setBtnStartX(self, x:int) -> None:
         self._btnStartX = x
 
+
     def setBtnStartY(self, y:int) -> None:
         self._btnStartY = y
+
 
     def setBtnStartCoords(self, coords:Tuple[int, int]) -> None:
         self._btnStartX = coords[0]

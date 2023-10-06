@@ -11,16 +11,20 @@ class Config:
         self.file = file
         self.load()
 
+
     def dir(self) -> str:
         path = os.path.dirname(os.path.realpath(__file__))
         return os.path.abspath(f"{path}/../")
+
 
     def path(self) -> str:
         root = self.dir()
         return os.path.abspath(f"{root}/{self.file}")
 
+
     def load(self) -> None:
         self.cfg = benedict(self.path(), format='json')
+
 
     def get(self, key:str, default:Any=None) -> Any:
         if key in self.cfg:

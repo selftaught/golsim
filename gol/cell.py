@@ -10,6 +10,25 @@ class CellState:
     ALIVE:int = 1
 
 
+class CellStats:
+    alive:int = 0
+    births:int = 0
+    deaths:int = 0
+    generation:int = 0
+
+    def __init__(self) -> None:
+        self._init()
+
+    def _init(self) -> None:
+        self.alive = 0
+        self.births = 0
+        self.deaths = 0
+        self.generation = 0
+
+    def reset(self) -> None:
+        self._init()
+
+
 class Cell:
     def __init__(
         self, x: int, y: int, width: int, height: int, state: Union[int, None] = None

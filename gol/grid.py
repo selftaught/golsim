@@ -12,15 +12,19 @@ class Grid:
         self.rowHeight = rowHeight
         self.enabled = enabled
 
+
     def isEnabled(self) -> bool:
         return self.enabled
+
 
     def toggle(self) -> bool:
         self.enabled = not self.enabled
         return self.enabled
 
+
     def setEnabled(self, enabled) -> None:
         self.enabled = enabled
+
 
     def draw(self, screen: pygame.Surface):
         if self.enabled:
